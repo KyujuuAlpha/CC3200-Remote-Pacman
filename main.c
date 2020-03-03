@@ -28,8 +28,10 @@
 #include "Adafruit_SSD1351.h"
 #include "test.h"
 
+#include "map.h"
+
 // macros for some constants
-#define SPI_IF_BIT_RATE  100000
+#define SPI_IF_BIT_RATE  800000
 #define TR_BUFF_SIZE     100
 #define BALL_RADIUS      2
 
@@ -147,7 +149,7 @@ static int adjustVel(int vel, const int *velFactor) {
 }
 
 static void gameLoop(void) {
-    struct Ball ball = {WIDTH / 2, HEIGHT / 2}; // structure that keeps rack of the ball's loc
+    struct Ball ball = {WIDTH / 2, HEIGHT / 2 - 50}; // structure that keeps rack of the ball's loc
     unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
     const int velFactor = 15; // max velocity
 
@@ -157,6 +159,18 @@ static void gameLoop(void) {
     int yVel = 0;
     
     fillScreen(0x0000); // first clear the screen
+    const int blockSize = WIDTH / MAP_SIZE;
+    int i, j;
+    for (i = 0; i < MAP_SIZE; i++) {
+        for (j = 0; j < MAP_SIZE; j++) {
+            if (map[j][i] == 1) {
+                fillRect(i * blockSize, j * blockSize, blockSize, blockSize, BLUE);
+            } else if (map[j][i] == 2) {
+                fillCircle(i * blockSize + blockSize / 3, j * blockSize + blockSize / 3, blockSize / 3, RED);
+            }
+        }
+    }
+
     while (1) {
         fillCircle(ball.x, ball.y, BALL_RADIUS, 0x0000);  // erase the old location of the ball
         I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
