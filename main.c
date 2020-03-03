@@ -119,23 +119,51 @@ static void BoardInit(void) {
 
 // function that updates the ball's location accordingly and keeps it within bounds
 static void updateBallLoc(struct Ball *ball, int *xVel, int *yVel) {
-    if((*ball).x + *xVel >= WIDTH - BALL_RADIUS) { // check if in bounds on the right
+    if((*ball).x + *xVel >= WIDTH - BALL_RADIUS) {
         (*ball).x = WIDTH - 1 - BALL_RADIUS;
         *xVel = 0;
     }
-    if((*ball).x + *xVel < 0 + BALL_RADIUS) { // check if in bounds on the left
+    if((*ball).x + *xVel < 0 + BALL_RADIUS) {
         (*ball).x = 0 + BALL_RADIUS;
         *xVel = 0;
     }
-    if((*ball).y + *yVel >= HEIGHT - BALL_RADIUS) { // check if in bounds on the bottom
+    if((*ball).y + *yVel >= HEIGHT - BALL_RADIUS) {
         (*ball).y = HEIGHT - 1 - BALL_RADIUS;
         *yVel = 0;
     }
-    if((*ball).y + *yVel < 0 + BALL_RADIUS) { // check if in bounds on the top
+    if((*ball).y + *yVel < 0 + BALL_RADIUS) {
         (*ball).y = 0 + BALL_RADIUS;
         *yVel = 0;
     }
-    (*ball).x += *xVel; // update the location accordingly
+    const int blockSize = WIDTH / MAP_SIZE;
+    int blockX = ((*ball).x + *xVel) / blockSize - 2, blockY = ((*ball).y + *yVel) / blockSize - 2;
+    int xLim = (blockX < MAP_SIZE - 4 ? blockX + 4 : MAP_SIZE - 1), yLim = (blockY < MAP_SIZE - 4 ? blockY + 4 : MAP_SIZE - 1);
+    int xStart = blockX > 0 ? blockX : 0, yStart = blockY > 0 ? blockY : 0;
+    for (blockX = xStart; blockX <= xLim; blockX++) {
+        for (blockY = yStart; blockY <= yLim; blockY++) {
+            int bX = blockX * blockSize, bY = blockY * blockSize;
+            if (map[blockY][blockX] > 0 && (*ball).x + *xVel >= bX - BALL_RADIUS && (*ball).x + *xVel <= bX + blockSize + BALL_RADIUS &&
+                                           (*ball).y + *yVel <= bY + blockSize + BALL_RADIUS && (*ball).y + *yVel >= bY - BALL_RADIUS) {
+                if ((*ball).x > bX + blockSize + BALL_RADIUS) {
+                   (*ball).x = bX + blockSize + BALL_RADIUS + 1;
+                   *xVel = 0;
+                }
+                if ((*ball).x < bX - BALL_RADIUS) {
+                    (*ball).x = bX - BALL_RADIUS - 1;
+                    *xVel = 0;
+                }
+                if ((*ball).y > bY + blockSize + BALL_RADIUS) {
+                    (*ball).y = bY + blockSize + BALL_RADIUS + 1;
+                    *yVel = 0;
+                }
+                if ((*ball).y < bY - BALL_RADIUS) {
+                    (*ball).y = bY - BALL_RADIUS - 1;
+                    *yVel = 0;
+                }
+            }
+        }
+    }
+    (*ball).x += *xVel;
     (*ball).y += *yVel;
 }
 
