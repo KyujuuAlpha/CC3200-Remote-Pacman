@@ -1,1 +1,1 @@
-# CC3200-Remote-Pacman
+Lab 2 project for EEC 172 for the OLED screen

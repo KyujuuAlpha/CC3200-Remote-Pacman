@@ -50,3 +50,11 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# extra
+desktop.ini
+/.metadata/
+/.jxbrowser-data/
+/dvt/
+/RemoteSystemsTempFiles/
+/Debug/
