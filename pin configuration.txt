@@ -1,5 +1,0 @@
-CLK = PIN 5
-MOSI = PIN 7
-DC = PIN 18
-R = PIN 8
-OC = PIN 6

@@ -1,1 +1,0 @@
-Lab 2 project for EEC 172 for the OLED screen

@@ -184,7 +184,7 @@ static int adjustVel(int vel, const int *velFactor) {
 
 static void gameLoop(void) {
     struct Ball ball; // structure that keeps track of the ball's loc
-    struct Baddies badGuys[4] = {
+    struct Baddie badGuys[4] = {
                                  { 0, 0, RED},
                                  { 0, 0, CYAN},
                                  { 0, 0, GREEN},
