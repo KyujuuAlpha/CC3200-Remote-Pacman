@@ -48,6 +48,12 @@ struct Ball {
     int y;
 };
 
+struct Baddie {
+    int x;
+    int y;
+    int color;
+    char dir;
+};
 // static function prototypes
 static void updateBallLoc(struct Ball *ball, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
@@ -177,24 +183,38 @@ static int adjustVel(int vel, const int *velFactor) {
 }
 
 static void gameLoop(void) {
-    struct Ball ball = {WIDTH / 2, HEIGHT / 2 - 50}; // structure that keeps rack of the ball's loc
+    struct Ball ball; // structure that keeps track of the ball's loc
+    struct Baddies badGuys[4] = {
+                                 { 0, 0, RED},
+                                 { 0, 0, CYAN},
+                                 { 0, 0, GREEN},
+                                 { 0, 0, MAGENTA}
+                                };
     unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
     const int velFactor = 15; // max velocity
 
     unsigned char dataBuf; // buffer that holds what was returned from a register
-    unsigned int color = 0xffff; // starting color of the ball
+    unsigned int color = YELLOW; // starting color of the ball
     int xVel = 0; // velocities of the ball
     int yVel = 0;
     
     fillScreen(0x0000); // first clear the screen
     const int blockSize = WIDTH / MAP_SIZE;
+    int initBaddie = 0;
     int i, j;
     for (i = 0; i < MAP_SIZE; i++) {
         for (j = 0; j < MAP_SIZE; j++) {
             if (map[j][i] == 1) {
                 fillRect(i * blockSize, j * blockSize, blockSize, blockSize, BLUE);
-            } else if (map[j][i] == 2) {
+            } else if (map[j][i] == 2) { // point ball
                 fillCircle(i * blockSize + blockSize / 3, j * blockSize + blockSize / 3, blockSize / 3, RED);
+            } else if (map[j][i] == 3) { // start loc player
+                ball.y = j*4;
+                ball.x = i*4;
+            } else if (map[j][i] == 4) { // start loc baddies
+                if (initBaddie >= 4) continue;
+                badGuys[initBaddie].y = j*4;
+                badGuys[initBaddie].x = i*4;
             }
         }
     }
