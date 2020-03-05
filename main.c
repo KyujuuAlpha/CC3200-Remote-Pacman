@@ -29,11 +29,13 @@
 #include "test.h"
 
 #include "map.h"
+#include <stdbool.h>
 
 // macros for some constants
 #define SPI_IF_BIT_RATE  800000
 #define TR_BUFF_SIZE     100
-#define BALL_RADIUS      2
+#define PAC_SIZE         4
+#define MAX_VEL          1
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -43,7 +45,7 @@ extern uVectorEntry __vector_table;
 #endif
 
 // ball struct
-struct Ball {
+struct Pac {
     int x;
     int y;
 };
@@ -55,7 +57,7 @@ struct Baddie {
     char dir;
 };
 // static function prototypes
-static void updateBallLoc(struct Ball *ball, int *xVel, int *yVel);
+static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
 static void gameLoop(void);
 static void BoardInit(void);
@@ -122,55 +124,109 @@ static void BoardInit(void) {
 }
 
 // Function definitions
+int abs(int val) {
+    if (val < 0) return -val;
+    return val;
+}
 
-// function that updates the ball's location accordingly and keeps it within bounds
-static void updateBallLoc(struct Ball *ball, int *xVel, int *yVel) {
-    if((*ball).x + *xVel >= WIDTH - BALL_RADIUS) {
-        (*ball).x = WIDTH - 1 - BALL_RADIUS;
+// function that updates the Pac's location accordingly and keeps it within bounds
+static void updatePacLoc(struct Pac *pac, int *xVel, int *yVel) {
+
+    // Boarder check
+    if((*pac).x + *xVel >= WIDTH - PAC_SIZE) {
+        (*pac).x = WIDTH - 1 - PAC_SIZE;
         *xVel = 0;
     }
-    if((*ball).x + *xVel < 0 + BALL_RADIUS) {
-        (*ball).x = 0 + BALL_RADIUS;
+    if((*pac).x + *xVel < 0) {
+        (*pac).x = 0;
         *xVel = 0;
     }
-    if((*ball).y + *yVel >= HEIGHT - BALL_RADIUS) {
-        (*ball).y = HEIGHT - 1 - BALL_RADIUS;
+    if((*pac).y + *yVel >= HEIGHT - PAC_SIZE) {
+        (*pac).y = HEIGHT - 1 - PAC_SIZE;
         *yVel = 0;
     }
-    if((*ball).y + *yVel < 0 + BALL_RADIUS) {
-        (*ball).y = 0 + BALL_RADIUS;
+    if((*pac).y + *yVel < 0) {
+        (*pac).y = 0;
         *yVel = 0;
     }
+
+    // Choose direction
+    bool yGreater = abs(*yVel) > abs(*xVel);
+    if(yGreater) {
+        *xVel = 0;
+        if(*yVel > MAX_VEL) *yVel = MAX_VEL;
+        if(*yVel < -MAX_VEL) *yVel = -MAX_VEL;
+    } else {
+        *yVel = 0;
+        if(*xVel > 2) *xVel = 2;
+        if(*xVel < -2) *xVel = -2;
+    }
+
+
+    if (*yVel == 0 && *xVel == 0) return;
+
+    // Wall check
     const int blockSize = WIDTH / MAP_SIZE;
-    int blockX = ((*ball).x + *xVel) / blockSize - 2, blockY = ((*ball).y + *yVel) / blockSize - 2;
-    int xLim = (blockX < MAP_SIZE - 4 ? blockX + 4 : MAP_SIZE - 1), yLim = (blockY < MAP_SIZE - 4 ? blockY + 4 : MAP_SIZE - 1);
-    int xStart = blockX > 0 ? blockX : 0, yStart = blockY > 0 ? blockY : 0;
+    int blockX, blockY;
+    if (*xVel < 0 || *yVel < 0)
+    {
+        blockX = ((*pac).x + *xVel) / blockSize;
+        blockY = ((*pac).y + *yVel) / blockSize;
+    } else {
+        blockX = ((*pac).x + *xVel + PAC_SIZE - 1) / blockSize;
+        blockY = ((*pac).y + *yVel + PAC_SIZE - 1) / blockSize;
+    }
+//    int xLim = (blockX < MAP_SIZE - 4 ? blockX + 4 : MAP_SIZE - 1), yLim = (blockY < MAP_SIZE - 4 ? blockY + 4 : MAP_SIZE - 1);
+//    int xStart = blockX > 0 ? blockX : 0, yStart = blockY > 0 ? blockY : 0;
+    if (map[blockY][blockX] == 1) {
+        if (yGreater) {
+            if (*yVel < 0) {
+                (*pac).y = (blockY + 1) * 4;
+                (*pac).x = blockX * 4;
+            } else {
+                (*pac).y = (blockX - 1) * 4;
+                (*pac).x = (blockX + 1) * 4;
+            }
+        } else {
+            if (*xVel < 0) {
+                (*pac).x = (blockX + 1) * 4;
+                (*pac).y = blockY * 4;
+            } else {
+                (*pac).x = (blockX - 1) * 4;
+                (*pac).y = (blockY + 1) * 4;
+            }
+        }
+        *xVel = 0;
+        *yVel = 0;
+    }
+    /*
     for (blockX = xStart; blockX <= xLim; blockX++) {
         for (blockY = yStart; blockY <= yLim; blockY++) {
             int bX = blockX * blockSize, bY = blockY * blockSize;
-            if (map[blockY][blockX] > 0 && (*ball).x + *xVel >= bX - BALL_RADIUS && (*ball).x + *xVel <= bX + blockSize + BALL_RADIUS &&
-                                           (*ball).y + *yVel <= bY + blockSize + BALL_RADIUS && (*ball).y + *yVel >= bY - BALL_RADIUS) {
-                if ((*ball).x > bX + blockSize + BALL_RADIUS) {
-                   (*ball).x = bX + blockSize + BALL_RADIUS + 1;
+            if (map[blockY][blockX] > 0 && (*pac).x + *xVel >= bX - PAC_SIZE && (*pac).x + *xVel <= bX + blockSize + PAC_SIZE &&
+                                           (*pac).y + *yVel <= bY + blockSize + PAC_SIZE && (*pac).y + *yVel >= bY - PAC_SIZE) {
+                if ((*pac).x > bX + blockSize + PAC_SIZE) {
+                   (*pac).x = bX + blockSize + PAC_SIZE + 1;
                    *xVel = 0;
                 }
-                if ((*ball).x < bX - BALL_RADIUS) {
-                    (*ball).x = bX - BALL_RADIUS - 1;
+                if ((*pac).x < bX - PAC_SIZE) {
+                    (*pac).x = bX - PAC_SIZE - 1;
                     *xVel = 0;
                 }
-                if ((*ball).y > bY + blockSize + BALL_RADIUS) {
-                    (*ball).y = bY + blockSize + BALL_RADIUS + 1;
+                if ((*pac).y > bY + blockSize + PAC_SIZE) {
+                    (*pac).y = bY + blockSize + PAC_SIZE + 1;
                     *yVel = 0;
                 }
-                if ((*ball).y < bY - BALL_RADIUS) {
-                    (*ball).y = bY - BALL_RADIUS - 1;
+                if ((*pac).y < bY - PAC_SIZE) {
+                    (*pac).y = bY - PAC_SIZE - 1;
                     *yVel = 0;
                 }
             }
         }
-    }
-    (*ball).x += *xVel;
-    (*ball).y += *yVel;
+    } */
+
+    (*pac).x += *xVel;
+    (*pac).y += *yVel;
 }
 
 // function to return the adjusted two's complement representation of what was returned
@@ -183,7 +239,7 @@ static int adjustVel(int vel, const int *velFactor) {
 }
 
 static void gameLoop(void) {
-    struct Ball ball; // structure that keeps track of the ball's loc
+    struct Pac pac; // structure that keeps track of the pac's loc
     struct Baddie badGuys[4] = {
                                  { 0, 0, RED},
                                  { 0, 0, CYAN},
@@ -194,8 +250,8 @@ static void gameLoop(void) {
     const int velFactor = 15; // max velocity
 
     unsigned char dataBuf; // buffer that holds what was returned from a register
-    unsigned int color = YELLOW; // starting color of the ball
-    int xVel = 0; // velocities of the ball
+    unsigned int color = YELLOW; // starting color of the pac
+    int xVel = 0; // velocities of the pac
     int yVel = 0;
     
     fillScreen(0x0000); // first clear the screen
@@ -206,11 +262,11 @@ static void gameLoop(void) {
         for (j = 0; j < MAP_SIZE; j++) {
             if (map[j][i] == 1) {
                 fillRect(i * blockSize, j * blockSize, blockSize, blockSize, BLUE);
-            } else if (map[j][i] == 2) { // point ball
+            } else if (map[j][i] == 2) { // point pac
                 fillCircle(i * blockSize + blockSize / 3, j * blockSize + blockSize / 3, blockSize / 3, RED);
             } else if (map[j][i] == 3) { // start loc player
-                ball.y = j*4;
-                ball.x = i*4;
+                pac.y = j*4;
+                pac.x = i*4;
             } else if (map[j][i] == 4) { // start loc baddies
                 if (initBaddie >= 4) continue;
                 badGuys[initBaddie].y = j*4;
@@ -220,19 +276,15 @@ static void gameLoop(void) {
     }
 
     while (1) {
-        fillCircle(ball.x, ball.y, BALL_RADIUS, 0x0000);  // erase the old location of the ball
+        fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE,  0x0000);  // erase the old location of the pac
         I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
         I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.
         yVel = adjustVel((int) dataBuf, &velFactor);
         I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
         I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
         xVel = adjustVel((int) dataBuf, &velFactor);
-        updateBallLoc(&ball, &xVel, &yVel); // update the ball's location
-        fillCircle(ball.x, ball.y, BALL_RADIUS, color); // draw new ball on the screen
-        delay(1);
-        if (color <= 0x0005) { // keep shifting the color of the ball until it gets
-            color = 0xffff;    // too dark
-        }
-        color -= 0x0002;
+        updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
+        fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
+        delay(3);
     }
 }
