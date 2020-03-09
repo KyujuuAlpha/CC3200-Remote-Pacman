@@ -209,36 +209,6 @@ static void updatePacLoc(struct Pac *pac, int *xVel, int *yVel) {
             // move y, position x on rails
         }
     }
-//    // Wall check
-//    const int blockSize = WIDTH / MAP_SIZE;
-//    int blockX, blockY;
-//    if (*xVel < 0 || *yVel < 0)
-//    {
-//        blockX = ((*pac).x + *xVel) / blockSize;
-//        blockY = ((*pac).y + *yVel) / blockSize;
-//    } else {
-//        blockX = ((*pac).x + *xVel + PAC_SIZE - 1) / blockSize;
-//        blockY = ((*pac).y + *yVel + PAC_SIZE - 1) / blockSize;
-//    }
-//    if (map[blockY][blockX] == 1) {
-//        if (yGreater) {
-//            if (*yVel < 0) {
-//                (*pac).y = (blockY + 1) * 4;
-//            } else {
-//                (*pac).y = (blockY - 1) * 4;
-//            }
-//        } else {
-//            if (*xVel < 0) {
-//                (*pac).x = (blockX + 1) * 4;
-//            } else {
-//                (*pac).x = (blockX - 1) * 4;
-//            }
-//        }
-//        *xVel = 0;
-//        *yVel = 0;
-//    }
-//    (*pac).x += *xVel;
-//    (*pac).y += *yVel;
 }
 
 // function to return the adjusted two's complement representation of what was returned
