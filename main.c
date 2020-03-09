@@ -143,104 +143,102 @@ int abs(int val) {
     return val;
 }
 
-// function that updates the Pac's location accordingly and keeps it within bounds
-static void updatePacLoc(struct Pac *pac, int *xVel, int *yVel) {
-
-    // Boarder check
-    if((*pac).x + *xVel >= WIDTH - PAC_SIZE) {
-        (*pac).x = WIDTH - 1 - PAC_SIZE;
-        *xVel = 0;
-    }
-    if((*pac).x + *xVel < 0) {
-        (*pac).x = 0;
-        *xVel = 0;
-    }
-    if((*pac).y + *yVel >= HEIGHT - PAC_SIZE) {
-        (*pac).y = HEIGHT - 1 - PAC_SIZE;
-        *yVel = 0;
-    }
-    if((*pac).y + *yVel < 0) {
-        (*pac).y = 0;
-        *yVel = 0;
-    }
-
-    // Choose direction
-    bool yGreater = abs(*yVel) > abs(*xVel);
-    if(yGreater) {
-        *xVel = 0;
-        if(*yVel > MAX_VEL) *yVel = MAX_VEL;
-        if(*yVel < -MAX_VEL) *yVel = -MAX_VEL;
-    } else {
-        *yVel = 0;
-        if(*xVel > 2) *xVel = 2;
-        if(*xVel < -2) *xVel = -2;
-    }
-
-
-    if (*yVel == 0 && *xVel == 0) return;
-
+static bool yCollision(struct Pac *pac, int *yVel) {
     // Wall check
     const int blockSize = WIDTH / MAP_SIZE;
     int blockX, blockY;
-    if (*xVel < 0 || *yVel < 0)
+    blockX = ((*pac).x + 2) / blockSize;
+    if (*yVel < 0)
     {
-        blockX = ((*pac).x + *xVel) / blockSize;
         blockY = ((*pac).y + *yVel) / blockSize;
     } else {
-        blockX = ((*pac).x + *xVel + PAC_SIZE - 1) / blockSize;
         blockY = ((*pac).y + *yVel + PAC_SIZE - 1) / blockSize;
     }
-//    int xLim = (blockX < MAP_SIZE - 4 ? blockX + 4 : MAP_SIZE - 1), yLim = (blockY < MAP_SIZE - 4 ? blockY + 4 : MAP_SIZE - 1);
-//    int xStart = blockX > 0 ? blockX : 0, yStart = blockY > 0 ? blockY : 0;
-    if (map[blockY][blockX] == 1) {
-        if (yGreater) {
-            if (*yVel < 0) {
-                (*pac).y = (blockY + 1) * 4;
-                (*pac).x = blockX * 4;
-            } else {
-                (*pac).y = (blockX - 1) * 4;
-                (*pac).x = (blockX + 1) * 4;
-            }
-        } else {
-            if (*xVel < 0) {
-                (*pac).x = (blockX + 1) * 4;
-                (*pac).y = blockY * 4;
-            } else {
-                (*pac).x = (blockX - 1) * 4;
-                (*pac).y = (blockY + 1) * 4;
-            }
-        }
+    return map[blockY][blockX];
+}
+
+static bool xCollision(struct Pac *pac, int *xVel) {
+    // Wall check
+    const int blockSize = WIDTH / MAP_SIZE;
+    int blockX, blockY;
+    blockY = ((*pac).y+2) / blockSize;
+    if (*xVel < 0)
+    {
+        blockX = ((*pac).x + *xVel) / blockSize;
+    } else {
+        blockX = ((*pac).x + *xVel + PAC_SIZE - 1) / blockSize;
+    }
+    return map[blockY][blockX] == 1;
+}
+
+// function that updates the Pac's location accordingly and keeps it within bounds
+static void updatePacLoc(struct Pac *pac, int *xVel, int *yVel) {
+
+    bool yGreater = abs(*yVel) > abs(*xVel);
+    if(*yVel > MAX_VEL) *yVel = MAX_VEL;
+    if(*yVel < -MAX_VEL) *yVel = -MAX_VEL;
+    if(*xVel > MAX_VEL) *xVel = MAX_VEL;
+    if(*xVel < -MAX_VEL) *xVel = -MAX_VEL;
+    if (*yVel == 0 && *xVel == 0) return;
+
+    if(yCollision(pac, yVel) && xCollision(pac, xVel)) { // there's a collision in both directions
         *xVel = 0;
         *yVel = 0;
+        return;
+        // don't move
     }
-    /*
-    for (blockX = xStart; blockX <= xLim; blockX++) {
-        for (blockY = yStart; blockY <= yLim; blockY++) {
-            int bX = blockX * blockSize, bY = blockY * blockSize;
-            if (map[blockY][blockX] > 0 && (*pac).x + *xVel >= bX - PAC_SIZE && (*pac).x + *xVel <= bX + blockSize + PAC_SIZE &&
-                                           (*pac).y + *yVel <= bY + blockSize + PAC_SIZE && (*pac).y + *yVel >= bY - PAC_SIZE) {
-                if ((*pac).x > bX + blockSize + PAC_SIZE) {
-                   (*pac).x = bX + blockSize + PAC_SIZE + 1;
-                   *xVel = 0;
-                }
-                if ((*pac).x < bX - PAC_SIZE) {
-                    (*pac).x = bX - PAC_SIZE - 1;
-                    *xVel = 0;
-                }
-                if ((*pac).y > bY + blockSize + PAC_SIZE) {
-                    (*pac).y = bY + blockSize + PAC_SIZE + 1;
-                    *yVel = 0;
-                }
-                if ((*pac).y < bY - PAC_SIZE) {
-                    (*pac).y = bY - PAC_SIZE - 1;
-                    *yVel = 0;
-                }
-            }
+    if(yGreater) { // y is greater
+        if (!yCollision(pac, yVel)) { // no collision moving in y
+            (*pac).y += *yVel;
+            (*pac).x = (((*pac).x + 2) / 4) * 4;
+            return;
+            // move y, position x on rails
         }
-    } */
-
-    (*pac).x += *xVel;
-    (*pac).y += *yVel;
+        yGreater = false;
+    }
+    if(!yGreater) { // either x is greater or y collided
+        if (!xCollision(pac, xVel)) { // no collision moving in y
+            (*pac).x += *xVel;
+            (*pac).y = (((*pac).y + 2) / 4) * 4;
+            return;
+        }
+        if (!yCollision(pac, yVel)) { // no collision moving in y
+            (*pac).y += *yVel;
+            (*pac).x = (((*pac).x + 2) / 4) * 4;
+            return;
+            // move y, position x on rails
+        }
+    }
+//    // Wall check
+//    const int blockSize = WIDTH / MAP_SIZE;
+//    int blockX, blockY;
+//    if (*xVel < 0 || *yVel < 0)
+//    {
+//        blockX = ((*pac).x + *xVel) / blockSize;
+//        blockY = ((*pac).y + *yVel) / blockSize;
+//    } else {
+//        blockX = ((*pac).x + *xVel + PAC_SIZE - 1) / blockSize;
+//        blockY = ((*pac).y + *yVel + PAC_SIZE - 1) / blockSize;
+//    }
+//    if (map[blockY][blockX] == 1) {
+//        if (yGreater) {
+//            if (*yVel < 0) {
+//                (*pac).y = (blockY + 1) * 4;
+//            } else {
+//                (*pac).y = (blockY - 1) * 4;
+//            }
+//        } else {
+//            if (*xVel < 0) {
+//                (*pac).x = (blockX + 1) * 4;
+//            } else {
+//                (*pac).x = (blockX - 1) * 4;
+//            }
+//        }
+//        *xVel = 0;
+//        *yVel = 0;
+//    }
+//    (*pac).x += *xVel;
+//    (*pac).y += *yVel;
 }
 
 // function to return the adjusted two's complement representation of what was returned
