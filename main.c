@@ -4,6 +4,7 @@
 
 // Standard includes
 #include <string.h>
+#include <stdbool.h>
 
 // Driverlib includes
 #include "hw_types.h"
@@ -17,6 +18,7 @@
 #include "prcm.h"
 #include "uart.h"
 #include "interrupt.h"
+#include "timer.h"
 
 // Common interface includes
 #include "uart_if.h"
@@ -27,9 +29,9 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_SSD1351.h"
 #include "test.h"
+#include "pwm.h"
 
 #include "map.h"
-#include <stdbool.h>
 
 // macros for some constants
 #define SPI_IF_BIT_RATE  800000
@@ -70,6 +72,18 @@ void main() {
 
     // mux UART and SPI lines
     PinMuxConfig();
+
+    InitPWMModules();
+
+//    int iLoopCnt = 0;
+//
+//    while(1) {
+//        for(iLoopCnt = 2000; iLoopCnt < 5000; iLoopCnt+=100) {
+//            generateFrequency(iLoopCnt);
+//            MAP_UtilsDelay(80000000 / 2);
+//        }
+//
+//    }
 
     // I2C Init
     I2C_IF_Open(I2C_MASTER_MODE_FST);
