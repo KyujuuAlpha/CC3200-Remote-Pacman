@@ -256,10 +256,10 @@ static unsigned long getCurrentSysTimeMS(void) {
 static void gameInit(void) {
     struct Pac pac; // structure that keeps track of the pac's loc
     struct Baddie badGuys[4] = {
-                                 { 0, 0, RED},
-                                 { 0, 0, CYAN},
-                                 { 0, 0, GREEN},
-                                 { 0, 0, MAGENTA}
+                                 { 0, 0, RED },
+                                 { 0, 0, CYAN },
+                                 { 0, 0, GREEN },
+                                 { 0, 0, MAGENTA }
                                 };
     unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
     const int velFactor = 15; // max velocity
@@ -273,14 +273,14 @@ static void gameInit(void) {
 
     // intial stuff
     const int blockSize = WIDTH / MAP_SIZE;
-    int initBaddie = 0;
-    int i, j;
+    int i, j, k;
     for (i = 0; i < MAP_SIZE; i++) {
         for (j = 0; j < MAP_SIZE; j++) {
             if (map[j][i] == WALL) {
                 fillRect(i * blockSize, j * blockSize, blockSize, blockSize, WALL_COLOR);
             } else if (map[j][i] == POINT) { // point pac
-                fillCircle(i * blockSize + blockSize / 3, j * blockSize + blockSize / 3, blockSize / 3, POINT_COLOR);
+                k =  blockSize / 2;
+                fillRect(i * blockSize + blockSize / 2 - k / 2, j * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
             } else if (map[j][i] == SPAWN) { // start loc player
                 pac.y = j*4;
                 pac.x = i*4;
@@ -308,7 +308,7 @@ static void gameInit(void) {
                 xVel = adjustVel((int) dataBuf, &velFactor);
 
                 if (tickCounter > 100) { // send a get request every 10 seconds to check for new baddies
-                    playSound(BEEP);
+                    playSound(DEATH);
                     tickCounter = 0;
                     buildRequest("pac_x", integerToString(pac.x));
                     buildRequest("pac_y", integerToString(pac.y));
