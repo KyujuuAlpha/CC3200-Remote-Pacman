@@ -67,6 +67,7 @@ static int adjustVel(int vel, const int *velFactor);
 static long dropFrame(long frameCount);
 static char *encodeCoords(int *coords, int size);
 static char *integerToString(int i);
+static unsigned long getCurrentSysTimeMS(void);
 static void gameInit(void);
 static void BoardInit(void);
 
@@ -79,8 +80,7 @@ void main() {
     // mux UART and SPI lines
     PinMuxConfig();
 
-    //SysTickInit();
-
+    // init sound system
     InitSoundModules();
 
     // I2C Init
@@ -277,18 +277,18 @@ static void gameInit(void) {
     int i, j;
     for (i = 0; i < MAP_SIZE; i++) {
         for (j = 0; j < MAP_SIZE; j++) {
-            if (map[j][i] == 1) {
+            if (map[j][i] == WALL) {
                 fillRect(i * blockSize, j * blockSize, blockSize, blockSize, BLUE);
-            } else if (map[j][i] == 2) { // point pac
+            } else if (map[j][i] == POINT) { // point pac
                 fillCircle(i * blockSize + blockSize / 3, j * blockSize + blockSize / 3, blockSize / 3, RED);
-            } else if (map[j][i] == 3) { // start loc player
+            } else if (map[j][i] == SPAWN) { // start loc player
                 pac.y = j*4;
                 pac.x = i*4;
-            } else if (map[j][i] == 4) { // start loc baddies
+            } /*  if (map[j][i] == 4) { // start loc baddies
                 if (initBaddie >= 4) continue;
                 badGuys[initBaddie].y = j*4;
                 badGuys[initBaddie].x = i*4;
-            }
+            }*/
         }
     }
 
