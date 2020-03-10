@@ -20,7 +20,6 @@
 #include "uart.h"
 #include "interrupt.h"
 #include "timer.h"
-#include "systick_if.h"
 
 #include "pin.h"
 
@@ -80,6 +79,8 @@ void main() {
     // mux UART and SPI lines
     PinMuxConfig();
 
+    //SysTickInit();
+
     InitSoundModules();
 
     // I2C Init
@@ -108,8 +109,6 @@ void main() {
 
     // connect to the network
     networkConnect();
-
-    SysTickInit();
 
     // Initialize adafruit, then call the game loop
     Adafruit_Init();
@@ -226,7 +225,7 @@ static int frameDrop = 0;
 
 static long dropFrame(long frameCount) {
     frameDrop++;
-    return (frameCount += 444533) < 0 ? dropFrame(frameCount) : frameCount;
+    return (frameCount += 888800) < 0 ? dropFrame(frameCount) : frameCount;
 }
 
 static char translation[32] = {'0', '1', '2', '3', '4', '5', '6',
@@ -248,6 +247,10 @@ static char *integerToString(int i) {
     static char stringBuf[] = "";
     sprintf(stringBuf, "%d", i);
     return stringBuf;
+}
+
+static unsigned long getCurrentSysTimeMS(void) {
+    return (unsigned long) ((unsigned long long) PRCMSlowClkCtrGet() / 32768.0 * 1000.0);
 }
 
 static void gameInit(void) {
@@ -290,7 +293,7 @@ static void gameInit(void) {
     }
 
     // game loop
-    unsigned long prevTime = UTUtilsGetSysTime();
+    unsigned long prevTime = getCurrentSysTimeMS();
     long newDelay = 0;
     unsigned char tickTimer = 0, tickCounter = 0;
     while (1) {
@@ -326,12 +329,12 @@ static void gameInit(void) {
             fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
             updateSoundModules();
         } while (frameDrop-- > 0);
-        newDelay = (long)((16.67 - ((long)UTUtilsGetSysTime() - (long)prevTime)) * 26666.67);
+        newDelay = (long)(33.33 - (((long) getCurrentSysTimeMS() - (long)prevTime)) * 26666.67);
         frameDrop = 0;
         if (newDelay < 0) { // dropped a frame
             newDelay = dropFrame(newDelay);
         }
         MAP_UtilsDelay((unsigned long) newDelay);
-        prevTime = UTUtilsGetSysTime();
+        prevTime = getCurrentSysTimeMS();
     }
 }
