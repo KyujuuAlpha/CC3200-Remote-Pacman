@@ -62,6 +62,7 @@ struct Baddie {
 // static function prototypes
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
+static long dropFrame(long frameCount);
 static void gameInit(void);
 static void BoardInit(void);
 
@@ -221,6 +222,10 @@ static int adjustVel(int vel, const int *velFactor) {
     return -(vel * (*velFactor) / (255 / 2)); // adjust the velocity accordingly
 }
 
+static long dropFrame(long frameCount) {
+    return (frameCount += 444533) < 0 ? dropFrame(frameCount) : frameCount;
+}
+
 static void gameInit(void) {
     struct Pac pac; // structure that keeps track of the pac's loc
     struct Baddie badGuys[4] = {
@@ -261,7 +266,8 @@ static void gameInit(void) {
     }
 
     // game loop
-    unsigned long newDelay = 0, prevTime = UTUtilsGetSysTime();
+    unsigned long prevTime = UTUtilsGetSysTime();
+    long newDelay = 0;
     unsigned char tickTimer = 0;
     while (1) {
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
@@ -276,8 +282,11 @@ static void gameInit(void) {
         }
         updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
-        newDelay = (unsigned long)((16.67 - (UTUtilsGetSysTime() - prevTime)) * 26666.67);
-        MAP_UtilsDelay(newDelay);
+        newDelay = (long)((16.67 - (UTUtilsGetSysTime() - prevTime)) * 26666.67);
+        if (newDelay < 0) { // dropped a frame
+            newDelay = dropFrame(newDelay);
+        }
+        MAP_UtilsDelay((unsigned long) newDelay);
         tickTimer++;
         prevTime = UTUtilsGetSysTime();
     }
