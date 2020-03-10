@@ -32,6 +32,7 @@
 #include "test.h"
 #include "map.h"
 #include "sound.h"
+#include "aws_if.h"
 
 // macros for some constants
 #define SPI_IF_BIT_RATE  800000
@@ -99,6 +100,9 @@ void main() {
 
     // enable spi for communication
     MAP_SPIEnable(GSPI_BASE);
+
+    // connect to the network
+    networkConnect();
 
     // Initialize adafruit, then call the game loop
     Adafruit_Init();
@@ -211,7 +215,10 @@ static int adjustVel(int vel, const int *velFactor) {
     return -(vel * (*velFactor) / (255 / 2)); // adjust the velocity accordingly
 }
 
+static int frameDrop = 0;
+
 static long dropFrame(long frameCount) {
+    frameDrop++;
     return (frameCount += 444533) < 0 ? dropFrame(frameCount) : frameCount;
 }
 
@@ -260,24 +267,27 @@ static void gameInit(void) {
     unsigned char tickTimer = 0;
     while (1) {
         prevTime = UTUtilsGetSysTime();
-        if (tickTimer >= 2) { // get new data 10 times a second
-            tickTimer = 0;
-            I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
-            I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.
-            yVel = adjustVel((int) dataBuf, &velFactor);
-            I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
-            I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
-            xVel = adjustVel((int) dataBuf, &velFactor);
-        } else {
-            tickTimer++;
-        }
-        if (xVel != 0 || yVel != 0) {
-            fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
-        }
-        updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
-        fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
-        updateSoundModules();
+        do {
+            if (tickTimer >= 2) { // get new data 10 times a second
+                tickTimer = 0;
+                I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
+                I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.
+                yVel = adjustVel((int) dataBuf, &velFactor);
+                I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
+                I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
+                xVel = adjustVel((int) dataBuf, &velFactor);
+            } else {
+                tickTimer++;
+            }
+            if (xVel != 0 || yVel != 0) {
+                fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
+            }
+            updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
+            fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
+            updateSoundModules();
+        } while (frameDrop-- > 0);
         newDelay = (long)((16.67 - (UTUtilsGetSysTime() - prevTime)) * 26666.67);
+        frameDrop = 0;
         if (newDelay < 0) { // dropped a frame
             newDelay = dropFrame(newDelay);
         }
