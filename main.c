@@ -282,8 +282,9 @@ static void gameInit(void) {
             if (tickCount > 50) {
                 tickCount = 0;
                 playSound(BEEP);
+            } else {
+                tickCount++;
             }
-            tickCount++;
         } else {
             tickTimer++;
         }

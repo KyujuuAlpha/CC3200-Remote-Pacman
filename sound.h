@@ -8,9 +8,11 @@
 #ifndef SOUND_H_
 #define SOUND_H_
 
-#define BEEP 88663333
+#define BEEP "33336688"
 
-void playSound(unsigned long newSong);
+#define ZERO_CHAR '0'
+
+void playSound(char *newSong);
 void generateFrequency(unsigned long frequency);
 void stopFrequencyGenerator(void);
 

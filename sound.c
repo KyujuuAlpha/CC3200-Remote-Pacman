@@ -24,9 +24,9 @@
 #include "gpio.h"
 
 static bool freqFlag = false, isGenerating = false;
-unsigned long song = 0;
+char *song = "";
 
-void playSound(unsigned long newSong) {
+void playSound(char *newSong) {
     song = newSong;
 }
 
@@ -60,13 +60,12 @@ void DeInitSoundModules() {
 }
 
 void updateSoundModules(void) {
-    unsigned char current = song % 10;
-    if (current == 0) {
+    if (song[0] == '\0') {
         stopFrequencyGenerator();
     } else {
-        generateFrequency(2000 + ((current - 1) * 375));
+        generateFrequency(2000 + (((song[0] - ZERO_CHAR) - 1) * 375));
+        song++;
     }
-    song /= 10;
 }
 
 void frequencyGenerator(void) {
