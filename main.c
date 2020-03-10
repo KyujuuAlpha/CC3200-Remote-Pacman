@@ -109,6 +109,8 @@ void main() {
     // connect to the network
     networkConnect();
 
+    SysTickInit();
+
     // Initialize adafruit, then call the game loop
     Adafruit_Init();
     gameInit();
