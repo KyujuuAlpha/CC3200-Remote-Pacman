@@ -72,13 +72,14 @@ static int set_time();
 static long InitializeAppVariables();
 static int tls_connect();
 static int connectToAccessPoint();
-static int http_get(int iTLSSockID);
+static char* http_get(int iTLSSockID);
 static int http_post(int iTLSSockID, char *text);
 
 // "public" function prototypes
 void networkConnect(void);
 void networkKill(void);
 void sendString(char *text);
+char* receiveString(void);
 
 long printErrConvenience(char * msg, long retVal);
 int connectToAccessPoint();

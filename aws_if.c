@@ -725,7 +725,7 @@ int connectToAccessPoint() {
 
 // method that creates a GET request based
 // and sends it to the given TLS port
-static int http_get(int iTLSSockID){
+static char* http_get(int iTLSSockID){
     char acSendBuff[512];
     char acRecvbuff[1460];
     char cCLLength[200];
@@ -742,32 +742,27 @@ static int http_get(int iTLSSockID){
     pcBufHeaders += strlen(CHEADER);
     strcpy(pcBufHeaders, "\r\n\r\n");
 
-    UART_PRINT(acSendBuff);
+    //UART_PRINT(acSendBuff);
 
     //
     // Send the packet to the server */
     //
     lRetVal = sl_Send(iTLSSockID, acSendBuff, strlen(acSendBuff), 0);
     if(lRetVal < 0) {
-        UART_PRINT("GET failed. Error Number: %i\n\r",lRetVal);
+        //UART_PRINT("GET failed. Error Number: %i\n\r",lRetVal);
         sl_Close(iTLSSockID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-        return lRetVal;
+        return "";
     }
     lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), 0);
     if(lRetVal < 0) {
-        UART_PRINT("Received failed. Error Number: %i\n\r",lRetVal);
+        //UART_PRINT("Received failed. Error Number: %i\n\r",lRetVal);
         //sl_Close(iSSLSockID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-           return lRetVal;
-    }
-    else {
-        acRecvbuff[lRetVal+1] = '\0';
-        UART_PRINT(acRecvbuff); // print what was received over UART
-        UART_PRINT("\n\r\n\r");
+           return "";
     }
 
-    return 0;
+    return acRecvbuff;
 }
 
 // method that creates a POST request based on the string
@@ -871,4 +866,8 @@ void networkKill(void) {
 // send the string over with TLS encryption
 void sendString(char *text) {
     http_post(accessReturnVal, text);
+}
+
+char* receiveString(void) {
+    return http_get(accessReturnVal);
 }

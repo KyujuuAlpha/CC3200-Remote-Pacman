@@ -264,9 +264,8 @@ static void gameInit(void) {
     // game loop
     unsigned long prevTime = UTUtilsGetSysTime();
     long newDelay = 0;
-    unsigned char tickTimer = 0;
+    unsigned char tickTimer = 0, tickCounter = 0;
     while (1) {
-        prevTime = UTUtilsGetSysTime();
         do {
             if (tickTimer >= 2) { // get new data 10 times a second
                 tickTimer = 0;
@@ -276,6 +275,13 @@ static void gameInit(void) {
                 I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
                 I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
                 xVel = adjustVel((int) dataBuf, &velFactor);
+
+                if (tickCounter > 50) {
+                    tickCounter = 0;
+                    receiveString();
+                } else {
+                    tickCounter++;
+                }
             } else {
                 tickTimer++;
             }
@@ -286,11 +292,12 @@ static void gameInit(void) {
             fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
             updateSoundModules();
         } while (frameDrop-- > 0);
-        newDelay = (long)((16.67 - (UTUtilsGetSysTime() - prevTime)) * 26666.67);
+        newDelay = (long)((16.67 - ((long)UTUtilsGetSysTime() - (long)prevTime)) * 26666.67);
         frameDrop = 0;
         if (newDelay < 0) { // dropped a frame
             newDelay = dropFrame(newDelay);
         }
         MAP_UtilsDelay((unsigned long) newDelay);
+        prevTime = UTUtilsGetSysTime();
     }
 }
