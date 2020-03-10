@@ -59,3 +59,6 @@ desktop.ini
 /RemoteSystemsTempFiles/
 /Debug/
 /Release/
+
+.cproject
+.project
