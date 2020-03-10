@@ -30,9 +30,8 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_SSD1351.h"
 #include "test.h"
-#include "pwm.h"
-
 #include "map.h"
+#include "sound.h"
 
 // macros for some constants
 #define SPI_IF_BIT_RATE  800000

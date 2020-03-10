@@ -5,6 +5,8 @@
  *      Author: troir
  */
 
+#include "sound.h"
+
 #include <stdbool.h>
 
 #include "hw_types.h"
@@ -21,7 +23,6 @@
 #include "timer_if.h"
 #include "gpio.h"
 
-#include "pwm.h"
 
 static bool isGenerating = false;
 
