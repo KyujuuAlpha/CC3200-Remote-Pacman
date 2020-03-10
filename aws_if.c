@@ -728,8 +728,7 @@ int connectToAccessPoint() {
 // and sends it to the given TLS port
 static char* http_get(int iTLSSockID){
     char acSendBuff[512];
-    char acRecvbuff[1460];
-    char cCLLength[200];
+    static char acRecvbuff[1460];
     char* pcBufHeaders;
     int lRetVal = 0;
 
