@@ -19,6 +19,7 @@
 #include "uart.h"
 #include "interrupt.h"
 #include "timer.h"
+#include "systick_if.h"
 
 // Common interface includes
 #include "uart_if.h"
@@ -61,7 +62,7 @@ struct Baddie {
 // static function prototypes
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
-static void gameLoop(void);
+static void gameInit(void);
 static void BoardInit(void);
 
 // main function definition
@@ -111,7 +112,7 @@ void main() {
 
     // Initialize adafruit, then call the game loop
     Adafruit_Init();
-    gameLoop();
+    gameInit();
 }
 
 // Board initialization function
@@ -220,7 +221,7 @@ static int adjustVel(int vel, const int *velFactor) {
     return -(vel * (*velFactor) / (255 / 2)); // adjust the velocity accordingly
 }
 
-static void gameLoop(void) {
+static void gameInit(void) {
     struct Pac pac; // structure that keeps track of the pac's loc
     struct Baddie badGuys[4] = {
                                  { 0, 0, RED},
@@ -237,6 +238,8 @@ static void gameLoop(void) {
     int yVel = 0;
     
     fillScreen(0x0000); // first clear the screen
+
+    // intial stuff
     const int blockSize = WIDTH / MAP_SIZE;
     int initBaddie = 0;
     int i, j;
@@ -257,8 +260,9 @@ static void gameLoop(void) {
         }
     }
 
+    // game loop
     while (1) {
-        fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE,  0x0000);  // erase the old location of the pac
+        fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
         I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
         I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.
         yVel = adjustVel((int) dataBuf, &velFactor);
