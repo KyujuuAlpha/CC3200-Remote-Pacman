@@ -15,7 +15,7 @@
 #define POINT 2
 #define SPAWN 3
 
-#define WALL_COLOR   0x1819
+#define WALL_COLOR   0x0115
 #define POINT_COLOR  0xF5C0
 #define PLAYER_COLOR 0xEFE0
 
