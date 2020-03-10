@@ -66,6 +66,7 @@ struct Baddie {
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
 static long dropFrame(long frameCount);
+static char *encodeCoords(void);
 static void gameInit(void);
 static void BoardInit(void);
 
@@ -223,6 +224,21 @@ static int frameDrop = 0;
 static long dropFrame(long frameCount) {
     frameDrop++;
     return (frameCount += 444533) < 0 ? dropFrame(frameCount) : frameCount;
+}
+
+static char translation[32] = {'0', '1', '2', '3', '4', '5', '6',
+                               '7', '8', '9', 'a', 'b', 'c', 'd',
+                               'e', 'f', 'g', 'h', 'i', 'j', 'k',
+                               'l', 'm', 'n', 'o', 'p', 'q', 'r',
+                               's', 't', 'u', 'v'};
+
+static char *encodeCoords(int *coords, int size) {
+    static char encode[] = "";
+    int i;
+    for (int i = 0; i < size; i++) {
+        sprintf(encode, "%s%c", encode, translation[coords[i]]);
+    }
+    return encode;
 }
 
 static void gameInit(void) {
