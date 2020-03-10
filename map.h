@@ -15,6 +15,10 @@
 #define POINT 2
 #define SPAWN 3
 
+#define WALL_COLOR   0x1819
+#define POINT_COLOR  0xF5C0
+#define PLAYER_COLOR 0xEFE0
+
 unsigned char map[MAP_SIZE][MAP_SIZE] = {
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 {1, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 0, 1},

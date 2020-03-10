@@ -265,7 +265,7 @@ static void gameInit(void) {
     const int velFactor = 15; // max velocity
 
     unsigned char dataBuf; // buffer that holds what was returned from a register
-    unsigned int color = YELLOW; // starting color of the pac
+    unsigned int color = PLAYER_COLOR; // starting color of the pac
     int xVel = 0; // velocities of the pac
     int yVel = 0;
     
@@ -278,9 +278,9 @@ static void gameInit(void) {
     for (i = 0; i < MAP_SIZE; i++) {
         for (j = 0; j < MAP_SIZE; j++) {
             if (map[j][i] == WALL) {
-                fillRect(i * blockSize, j * blockSize, blockSize, blockSize, BLUE);
+                fillRect(i * blockSize, j * blockSize, blockSize, blockSize, WALL_COLOR);
             } else if (map[j][i] == POINT) { // point pac
-                fillCircle(i * blockSize + blockSize / 3, j * blockSize + blockSize / 3, blockSize / 3, RED);
+                fillCircle(i * blockSize + blockSize / 3, j * blockSize + blockSize / 3, blockSize / 3, POINT_COLOR);
             } else if (map[j][i] == SPAWN) { // start loc player
                 pac.y = j*4;
                 pac.x = i*4;
