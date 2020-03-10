@@ -327,8 +327,8 @@ static void gameInit(void) {
             }
             updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
             fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
-            updateSoundModules();
         } while (frameDrop-- > 0);
+        updateSoundModules();
         newDelay = (long)(33.33 - (((long) getCurrentSysTimeMS() - (long)prevTime)) * 26666.67);
         frameDrop = 0;
         if (newDelay < 0) { // dropped a frame
