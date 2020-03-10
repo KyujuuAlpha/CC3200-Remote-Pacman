@@ -155,7 +155,7 @@ static bool yCollision(struct Pac *pac, int *yVel) {
     } else {
         blockY = ((*pac).y + *yVel + PAC_SIZE - 1) / blockSize;
     }
-    return map[blockY][blockX];
+    return map[blockY][blockX] == 1;
 }
 
 static bool xCollision(struct Pac *pac, int *xVel) {
