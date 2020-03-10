@@ -267,10 +267,11 @@ static void gameInit(void) {
     // game loop
     unsigned long prevTime = UTUtilsGetSysTime();
     long newDelay = 0;
-    unsigned char tickTimer = 0;
+    unsigned char tickTimer = 0, tickCount = 0;
     while (1) {
+        prevTime = UTUtilsGetSysTime();
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
-        if (tickTimer > 2) { // get new data 20 times a second
+        if (tickTimer >= 2) { // get new data 10 times a second
             tickTimer = 0;
             I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
             I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.
@@ -278,15 +279,21 @@ static void gameInit(void) {
             I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
             I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
             xVel = adjustVel((int) dataBuf, &velFactor);
+            if (tickCount > 50) {
+                tickCount = 0;
+                playSound(BEEP);
+            }
+            tickCount++;
+        } else {
+            tickTimer++;
         }
         updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
+        updateSoundModules();
         newDelay = (long)((16.67 - (UTUtilsGetSysTime() - prevTime)) * 26666.67);
         if (newDelay < 0) { // dropped a frame
             newDelay = dropFrame(newDelay);
         }
         MAP_UtilsDelay((unsigned long) newDelay);
-        tickTimer++;
-        prevTime = UTUtilsGetSysTime();
     }
 }

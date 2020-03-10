@@ -24,6 +24,11 @@
 #include "gpio.h"
 
 static bool freqFlag = false, isGenerating = false;
+unsigned long song = 0;
+
+void playSound(unsigned long newSong) {
+    song = newSong;
+}
 
 void generateFrequency(unsigned long frequency) {
     if (!isGenerating) {
@@ -52,6 +57,16 @@ void DeInitSoundModules() {
     GPIOPinWrite(GPIOA0_BASE, 0x1, 0x0);
     MAP_TimerDisable(TIMERA0_BASE, TIMER_A);
     MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
+}
+
+void updateSoundModules(void) {
+    unsigned char current = song % 10;
+    if (current == 0) {
+        stopFrequencyGenerator();
+    } else {
+        generateFrequency(2000 + ((current - 1) * 375));
+    }
+    song /= 10;
 }
 
 void frequencyGenerator(void) {
