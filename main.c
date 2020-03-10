@@ -76,16 +76,6 @@ void main() {
 
     InitSoundModules();
 
-//    int iLoopCnt = 0;
-//
-//    while(1) {
-//        for(iLoopCnt = 2000; iLoopCnt < 5000; iLoopCnt+=100) {
-//            generateFrequency(iLoopCnt);
-//            MAP_UtilsDelay(80000000 / 2);
-//        }
-//
-//    }
-
     // I2C Init
     I2C_IF_Open(I2C_MASTER_MODE_FST);
 
