@@ -4,6 +4,7 @@
 
 // Standard includes
 #include <string.h>
+#include <stdio.h>
 #include <stdbool.h>
 
 // Driverlib includes
@@ -20,6 +21,8 @@
 #include "interrupt.h"
 #include "timer.h"
 #include "systick_if.h"
+
+#include "pin.h"
 
 // Common interface includes
 #include "uart_if.h"
@@ -265,6 +268,7 @@ static void gameInit(void) {
     unsigned long prevTime = UTUtilsGetSysTime();
     long newDelay = 0;
     unsigned char tickTimer = 0, tickCounter = 0;
+    char *stringBuf;
     while (1) {
         do {
             if (tickTimer >= 2) { // get new data 10 times a second
@@ -276,8 +280,17 @@ static void gameInit(void) {
                 I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
                 xVel = adjustVel((int) dataBuf, &velFactor);
 
-                if (tickCounter > 50) {
+                if (tickCounter > 100) { // send a get request every 10 seconds to check for new baddies
+                    playSound(BEEP);
                     tickCounter = 0;
+                    stringBuf = "";
+                    sprintf(stringBuf, "%d", pac.x);
+                    buildRequest("pac_x", stringBuf);
+                    stringBuf = "";
+                    sprintf(stringBuf, "%d", pac.y);
+                    buildRequest("pac_y", stringBuf);
+                    sendRequest();
+
                     receiveString();
                 } else {
                     tickCounter++;

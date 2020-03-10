@@ -39,8 +39,8 @@
 #define CLHEADER1 "Content-Length: "
 #define CLHEADER2 "\r\n\r\n"
 
-#define DATA_PREF "{\"state\": {\r\n\"desired\" : {\r\n\"var\" : \""
-#define DATA_SUFF "\"\r\n}}}\r\n\r\n"
+#define DATA_PREF "{\"state\": {\r\n\"desired\" : {\r\n"
+#define DATA_SUFF "\r\n}}}\r\n\r\n"
 
 // Application specific status/error codes
 typedef enum {
@@ -78,7 +78,8 @@ static int http_post(int iTLSSockID, char *text);
 // "public" function prototypes
 void networkConnect(void);
 void networkKill(void);
-void sendString(char *text);
+void buildRequest(char *var, char *text);
+void sendRequest(void);
 char* receiveString(void);
 
 long printErrConvenience(char * msg, long retVal);

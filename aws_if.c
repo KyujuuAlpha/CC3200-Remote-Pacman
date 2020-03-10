@@ -3,6 +3,7 @@
 
 // standard includes
 #include <stdio.h>
+#include <stdbool.h>
 
 // Simplelink includes
 #include "simplelink.h"
@@ -742,24 +743,21 @@ static char* http_get(int iTLSSockID){
     pcBufHeaders += strlen(CHEADER);
     strcpy(pcBufHeaders, "\r\n\r\n");
 
-    //UART_PRINT(acSendBuff);
-
     //
     // Send the packet to the server */
     //
     lRetVal = sl_Send(iTLSSockID, acSendBuff, strlen(acSendBuff), 0);
     if(lRetVal < 0) {
-        //UART_PRINT("GET failed. Error Number: %i\n\r",lRetVal);
         sl_Close(iTLSSockID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return "";
     }
     lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), 0);
     if(lRetVal < 0) {
-        //UART_PRINT("Received failed. Error Number: %i\n\r",lRetVal);
-        //sl_Close(iSSLSockID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-           return "";
+        return "";
+    } else {
+        acRecvbuff[lRetVal+1] = '\0';
     }
 
     return acRecvbuff;
@@ -810,29 +808,22 @@ static int http_post(int iTLSSockID, char *text){
 
     int testDataLength = strlen(pcBufHeaders);
 
-    UART_PRINT(acSendBuff);
-
     //
     // Send the packet to the server */
     //
     lRetVal = sl_Send(iTLSSockID, acSendBuff, strlen(acSendBuff), 0);
     if(lRetVal < 0) {
-        UART_PRINT("POST failed. Error Number: %i\n\r",lRetVal);
         sl_Close(iTLSSockID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return lRetVal;
     }
     lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), 0);
     if(lRetVal < 0) {
-        UART_PRINT("Received failed. Error Number: %i\n\r",lRetVal);
-        //sl_Close(iSSLSockID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-           return lRetVal;
+        return lRetVal;
     }
     else {
         acRecvbuff[lRetVal+1] = '\0';
-        UART_PRINT(acRecvbuff);
-        UART_PRINT("\n\r\n\r");
     }
 
     return 0;
@@ -863,9 +854,23 @@ void networkKill(void) {
     sl_Stop(SL_STOP_TIMEOUT);
 }
 
+static bool firstElem = true;
+static char emptyString[] = "";
+static char *newRequest = "";
 // send the string over with TLS encryption
-void sendString(char *text) {
-    http_post(accessReturnVal, text);
+void buildRequest(char *var, char *text) {
+    if(firstElem) {
+        sprintf(newRequest, "%s\"%s\": \"%s\"", newRequest, var, text);
+        firstElem = false;
+    } else {
+        sprintf(newRequest, "%s,\r\n\"%s\": \"%s\"", newRequest, var, text);
+    }
+}
+
+void sendRequest(void) {
+    http_post(accessReturnVal, newRequest);
+    strcpy(newRequest, emptyString);
+    firstElem = true;
 }
 
 char* receiveString(void) {
