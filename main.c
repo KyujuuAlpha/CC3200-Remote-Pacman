@@ -292,6 +292,9 @@ static void gameInit(void) {
                     sendRequest();
 
                     receiveString();
+                } else if (tickCounter == 50) {
+                    receiveString();
+                    tickCounter++;
                 } else {
                     tickCounter++;
                 }
