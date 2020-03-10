@@ -2,7 +2,7 @@
  * pwm.c
  *
  *  Created on: Mar 8, 2020
- *      Author: troir
+ *      Author: Troi-Ryan Stoeffler
  */
 
 #include "sound.h"
@@ -23,8 +23,7 @@
 #include "timer_if.h"
 #include "gpio.h"
 
-
-static bool isGenerating = false;
+static bool freqFlag = false, isGenerating = false;
 
 void generateFrequency(unsigned long frequency) {
     if (!isGenerating) {
@@ -37,23 +36,24 @@ void generateFrequency(unsigned long frequency) {
 
 void stopFrequencyGenerator(void) {
     isGenerating = false;
+    freqFlag = false;
+    GPIOPinWrite(GPIOA0_BASE, 0x1, 0x0);
     Timer_IF_Stop(TIMERA0_BASE, TIMER_A); //stop the timer
 }
 
-void InitPWMModules() {
+void InitSoundModules() {
     GPIOPinWrite(GPIOA0_BASE, 0x1, 0x0);
     isGenerating = false;
     Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
     Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, frequencyGenerator);
 }
 
-void DeInitPWMModules() {
+void DeInitSoundModules() {
     GPIOPinWrite(GPIOA0_BASE, 0x1, 0x0);
     MAP_TimerDisable(TIMERA0_BASE, TIMER_A);
     MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
 }
 
-static bool freqFlag = false;
 void frequencyGenerator(void) {
     Timer_IF_InterruptClear(TIMERA0_BASE); // clear timer interrupt
     if (freqFlag = !freqFlag) {

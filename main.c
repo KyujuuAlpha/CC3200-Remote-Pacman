@@ -74,7 +74,7 @@ void main() {
     // mux UART and SPI lines
     PinMuxConfig();
 
-    InitPWMModules();
+    InitSoundModules();
 
 //    int iLoopCnt = 0;
 //

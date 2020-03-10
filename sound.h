@@ -2,7 +2,7 @@
  * pwm.h
  *
  *  Created on: Mar 8, 2020
- *      Author: troir
+ *      Author: Troi-Ryan Stoeffler
  */
 
 #ifndef SOUND_H_
@@ -11,8 +11,8 @@
 void generateFrequency(unsigned long frequency);
 void stopFrequencyGenerator(void);
 
-void InitPWMModules();
-void DeInitPWMModules();
+void InitSoundModules();
+void DeInitSoundModules();
 
 void frequencyGenerator(void);
 static void Tick_Timer_IF_Start(unsigned long ulBase, unsigned long ulTimer, unsigned long ulValue);
