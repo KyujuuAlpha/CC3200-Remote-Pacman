@@ -271,7 +271,7 @@ static void gameInit(void) {
     unsigned char tickTimer = 0;
     while (1) {
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
-        if (tickTimer >= 2) {
+        if (tickTimer > 2) { // get new data 20 times a second
             tickTimer = 0;
             I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
             I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.
