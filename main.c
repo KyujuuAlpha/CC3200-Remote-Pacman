@@ -270,7 +270,6 @@ static void gameInit(void) {
     unsigned char tickTimer = 0;
     while (1) {
         prevTime = UTUtilsGetSysTime();
-        fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
         if (tickTimer >= 2) { // get new data 10 times a second
             tickTimer = 0;
             I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
@@ -281,6 +280,9 @@ static void gameInit(void) {
             xVel = adjustVel((int) dataBuf, &velFactor);
         } else {
             tickTimer++;
+        }
+        if (xVel != 0 || yVel != 0) {
+            fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
         }
         updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
