@@ -66,7 +66,8 @@ struct Baddie {
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
 static long dropFrame(long frameCount);
-static char *encodeCoords(void);
+static char *encodeCoords(int *coords, int size);
+static char *integerToString(int i);
 static void gameInit(void);
 static void BoardInit(void);
 
@@ -235,10 +236,16 @@ static char translation[32] = {'0', '1', '2', '3', '4', '5', '6',
 static char *encodeCoords(int *coords, int size) {
     static char encode[] = "";
     int i;
-    for (int i = 0; i < size; i++) {
+    for (i = 0; i < size; i++) {
         sprintf(encode, "%s%c", encode, translation[coords[i]]);
     }
     return encode;
+}
+
+static char *integerToString(int i) {
+    static char stringBuf[] = "";
+    sprintf(stringBuf, "%d", i);
+    return stringBuf;
 }
 
 static void gameInit(void) {
@@ -284,7 +291,6 @@ static void gameInit(void) {
     unsigned long prevTime = UTUtilsGetSysTime();
     long newDelay = 0;
     unsigned char tickTimer = 0, tickCounter = 0;
-    char *stringBuf;
     while (1) {
         do {
             if (tickTimer >= 2) { // get new data 10 times a second
@@ -299,15 +305,9 @@ static void gameInit(void) {
                 if (tickCounter > 100) { // send a get request every 10 seconds to check for new baddies
                     playSound(BEEP);
                     tickCounter = 0;
-                    stringBuf = "";
-                    sprintf(stringBuf, "%d", pac.x);
-                    buildRequest("pac_x", stringBuf);
-                    stringBuf = "";
-                    sprintf(stringBuf, "%d", pac.y);
-                    buildRequest("pac_y", stringBuf);
+                    buildRequest("pac_x", integerToString(pac.x));
+                    buildRequest("pac_y", integerToString(pac.y));
                     sendRequest();
-
-                    receiveString();
                 } else if (tickCounter == 50) {
                     receiveString();
                     tickCounter++;
