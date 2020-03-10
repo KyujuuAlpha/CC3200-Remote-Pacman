@@ -313,7 +313,7 @@ static void gameInit(void) {
                     buildRequest("pac_x", integerToString(pac.x));
                     buildRequest("pac_y", integerToString(pac.y));
                     sendRequest();
-                } else if (tickCounter == 50) {
+                } else if (tickCounter == 250) {
                     receiveString();
                     tickCounter++;
                 } else {
