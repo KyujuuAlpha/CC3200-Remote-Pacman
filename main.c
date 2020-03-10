@@ -267,7 +267,7 @@ static void gameInit(void) {
     // game loop
     unsigned long prevTime = UTUtilsGetSysTime();
     long newDelay = 0;
-    unsigned char tickTimer = 0, tickCount = 0;
+    unsigned char tickTimer = 0;
     while (1) {
         prevTime = UTUtilsGetSysTime();
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
@@ -279,12 +279,6 @@ static void gameInit(void) {
             I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
             I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
             xVel = adjustVel((int) dataBuf, &velFactor);
-            if (tickCount > 50) {
-                tickCount = 0;
-                playSound(BEEP);
-            } else {
-                tickCount++;
-            }
         } else {
             tickTimer++;
         }
