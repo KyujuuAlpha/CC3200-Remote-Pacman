@@ -162,7 +162,7 @@ static char translation[32] = {'0', '1', '2', '3', '4', '5', '6',
                                's', 't', 'u', 'v'};
 
 static char *encodeCoords(int *coords, int size) {
-    static char encode[] = "";
+    static char encode[20] = "";
     int i;
     for (i = 0; i < size; i++) {
         sprintf(encode, "%s%c", encode, translation[coords[i]]);
@@ -171,15 +171,15 @@ static char *encodeCoords(int *coords, int size) {
 }
 
 static char *integerToString(int i) {
-    static char stringBuf[] = "";
-    sprintf(stringBuf, "%d", i);
-    return stringBuf;
+    static char stringBufA[20] = "";
+    sprintf(stringBufA, "%d", i);
+    return stringBufA;
 }
 
 static char *coordsToString(int i, int j) {
-    static char stringBuf[] = "";
-    sprintf(stringBuf, "%d %d", i, j);
-    return stringBuf;
+    static char stringBufB[20] = "";
+    sprintf(stringBufB, "%d %d", i, j);
+    return stringBufB;
 }
 
 
@@ -404,10 +404,9 @@ static bool pollReceiveMode = false, requestFlag = false;
 
 // this is called every 33 ms, barring the that frames are skipped!
 static void mainGameLogic(void) {
-
     if (tickTimer >= 2) { // get new data 10 times a second
         static char *receive;
-        static unsigned char dataBuf; // buffer that holds what was returned from a register
+        unsigned char dataBuf; // buffer that holds what was returned from a register
         tickTimer = 0;
         I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
         I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.

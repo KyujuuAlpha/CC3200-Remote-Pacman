@@ -480,7 +480,7 @@ void drawChar(int x, int y, unsigned char c,
 // print the string essentially, repurpose this function that was already here
 void Outstr (char * str) {
 	char * ptr;
-	
+
 	ptr = str;
 	while (*ptr) {
 		drawChar(cursor_x, cursor_y, *ptr++, textcolor, textbgcolor, textsize);
