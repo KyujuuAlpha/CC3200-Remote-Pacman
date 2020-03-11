@@ -68,6 +68,7 @@ static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
 static long dropFrame(long frameCount);
 static char *encodeCoords(int *coords, int size);
+static char *integerToString(int i);
 static char *coordsToString(int i, int j);
 static unsigned long getCurrentSysTimeMS(void);
 static void gameInit(void);
@@ -282,6 +283,12 @@ static char *encodeCoords(int *coords, int size) {
         sprintf(encode, "%s%c", encode, translation[coords[i]]);
     }
     return encode;
+}
+
+static char *integerToString(int i) {
+    static char stringBuf[] = "";
+    sprintf(stringBuf, "%d", i);
+    return stringBuf;
 }
 
 static char *coordsToString(int i, int j) {
