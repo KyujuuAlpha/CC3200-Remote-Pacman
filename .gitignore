@@ -54,11 +54,14 @@ dkms.conf
 # extra
 desktop.ini
 /.metadata/
+/.launches/
+/.settings/
 /.jxbrowser-data/
 /dvt/
 /RemoteSystemsTempFiles/
 /Debug/
 /Release/
 
+.ccsproject
 .cproject
 .project
