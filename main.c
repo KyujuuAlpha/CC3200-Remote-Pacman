@@ -416,8 +416,9 @@ static void mainGameLogic(void) {
 
         if (pollReceiveMode) {
             char *receive = networkReceive();
-            if (!strcmp("POLL", receive)) {
-                printf("%s\n", receive);
+            if (strstr(receive, "POLL") == NULL) {
+                // found something!
+                pollReceiveMode = false;
             }
         }
 
@@ -431,10 +432,11 @@ static void mainGameLogic(void) {
 //            buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
 //            sendRequest();
             char *receive = receiveString();
-            if (strcmp("POLL", receive)) {
+            if (strstr(receive, "POLL") != NULL) {
                 pollReceiveMode = true;
             } else {
-                printf("%s\n", receive);
+                // found something!
+                pollReceiveMode = false;
             }
         } else {
             tickCounter++;

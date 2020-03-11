@@ -892,4 +892,5 @@ char* networkReceive(void) {
     } else {
         acRecvbuff[lRetVal+1] = '\0';
     }
+    return acRecvbuff;
 }
