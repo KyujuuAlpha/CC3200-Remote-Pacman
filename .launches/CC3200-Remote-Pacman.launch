@@ -5,7 +5,7 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.CC3200.ccxml.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="${build_artifact:CC3200-Remote-Pacman}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.CC3200.ccxml.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="CC3200-Remote-Pacman"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:CC3200-Remote-Pacman}"/>
-<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.CC3200.ccxml.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="C:/Users\troir\Lab6\CC3200-Remote-Pacman\Release\CC3200-Remote-Pacman.out"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.CC3200.ccxml.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="/home/corbin/git/CC3200-Remote-Pacman/Release/CC3200-Remote-Pacman.out"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/CC3200-Remote-Pacman"/>
 </listAttribute>

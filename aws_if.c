@@ -582,9 +582,8 @@ static int tls_connect() {
     //
     // configure the socket as TLS1.2
     //
-    SlSockNonblocking_t enableOption;
-    enableOption.NonblockingEnabled = 1;
-    lRetVal = sl_SetSockOpt(iSockID, SL_SOL_SOCKET, SL_SO_NONBLOCKING, (_u8 *)&enableOption,sizeof(enableOption));
+    lRetVal = sl_SetSockOpt(iSockID, SL_SOL_SOCKET, SL_SO_SECMETHOD, &ucMethod,\
+                               sizeof(ucMethod));
     if(lRetVal < 0) {
         return printErrConvenience("Device couldn't set socket options \n\r", lRetVal);
     }
@@ -637,6 +636,11 @@ static int tls_connect() {
     if(lRetVal < 0) {
         return printErrConvenience("Device couldn't set socket options \n\r", lRetVal);
     }
+
+
+    SlSockNonblocking_t enableOption;
+    enableOption.NonblockingEnabled = 1;
+    lRetVal = sl_SetSockOpt(iSockID, SL_SOL_SOCKET, SL_SO_NONBLOCKING, (_u8 *)&enableOption,sizeof(enableOption));
 
 
     /* connect to the peer device - Google server */

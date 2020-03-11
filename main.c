@@ -326,7 +326,8 @@ static void gameInit(void) {
         for (j = 0; j < MAP_SIZE; j++) {
             if (map[j][i] == WALL) {
                 fillRect(i * blockSize, j * blockSize, blockSize, blockSize, WALL_COLOR);
-            } else if (map[j][i] == POINT) { // point pac
+            } else if (map[j][i] == POINT || map[j][i] == 5) { // point pac
+                map[j][i] == POINT; // to reset blocks that were cleared in last game
                 k =  blockSize / 2;
                 fillRect(i * blockSize + blockSize / 2 - k / 2, j * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
             } else if (map[j][i] == SPAWN) { // start loc player
@@ -381,6 +382,10 @@ static void gameInit(void) {
             int bad;
             for (bad = 0; bad < 4; bad++) {
                 fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, 0x0000);
+                int k =  blockSize / 2;
+                int badGridX = badGuys[bad].x/blockSize;
+                int badGridY = badGuys[bad].y/blockSize;
+                fillRect(badGridX * blockSize + blockSize / 2 - k / 2, badGridY * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
                 updateBaddieLoc(&badGuys[bad]);
                 fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, badGuys[bad].color);
                 if(enemyHit(&pac, &badGuys[bad])) {
@@ -389,7 +394,7 @@ static void gameInit(void) {
                 }
             }
             if(map[pac.y/blockSize][pac.x/blockSize] == 2) {
-                map[pac.y/blockSize][pac.x/blockSize] = 0;
+                map[pac.y/blockSize][pac.x/blockSize] = 5;
                 pac.score++;
                 drawScore(pac);
             }
