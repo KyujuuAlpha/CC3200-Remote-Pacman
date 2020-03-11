@@ -752,9 +752,11 @@ static char* http_get(int iTLSSockID){
         return "";
     }
     lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), SL_MSG_DONTWAIT);
-    if(lRetVal < 0 && lRetVal != SL_ERROR_BSD_EAGAIN) {
+    if(lRetVal < 0 && lRetVal != -11) {
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return "";
+    } else if(lRetVal == -11) {
+        sprintf(acRecvbuff, "%s", "POLL");
     } else {
         acRecvbuff[lRetVal+1] = '\0';
     }
@@ -764,9 +766,9 @@ static char* http_get(int iTLSSockID){
 
 // method that creates a POST request based on the string
 // and sends it to the given TLS port
-static int http_post(int iTLSSockID, char *text){
+static char* http_post(int iTLSSockID, char *text){
     char acSendBuff[512];
-    char acRecvbuff[1460];
+    static char acRecvbuff[1460];
     char cCLLength[200];
     char* pcBufHeaders;
     int lRetVal = 0;
@@ -814,12 +816,14 @@ static int http_post(int iTLSSockID, char *text){
     if(lRetVal < 0) {
         sl_Close(iTLSSockID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-        return lRetVal;
+        return "";
     }
     lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), SL_MSG_DONTWAIT);
-    if(lRetVal < 0 && lRetVal != SL_ERROR_BSD_EAGAIN) {
+    if(lRetVal < 0 && lRetVal != -11) {
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-        return lRetVal;
+        return "";
+    } else if(lRetVal == -11) {
+        sprintf(acRecvbuff, "%s", "POLL");
     } else {
         acRecvbuff[lRetVal+1] = '\0';
     }
@@ -865,12 +869,27 @@ void buildRequest(char *var, char *text) {
     }
 }
 
-void sendRequest(void) {
-    http_post(accessReturnVal, newRequest);
+char* sendRequest(void) {
+    static char *returnVal;
+    returnVal = http_post(accessReturnVal, newRequest);
     strcpy(newRequest, emptyString);
     firstElem = true;
+    return returnVal;
 }
 
 char* receiveString(void) {
     return http_get(accessReturnVal);
+}
+
+char* networkReceive(void) {
+    static char acRecvbuff[1460];
+    int lRetVal = sl_Recv(accessReturnVal, &acRecvbuff[0], sizeof(acRecvbuff), SL_MSG_DONTWAIT);
+    if(lRetVal < 0 && lRetVal != -11) {
+        GPIO_IF_LedOn(MCU_RED_LED_GPIO);
+        return "";
+    } else if(lRetVal == -11) {
+        sprintf(acRecvbuff, "%s", "POLL");
+    } else {
+        acRecvbuff[lRetVal+1] = '\0';
+    }
 }

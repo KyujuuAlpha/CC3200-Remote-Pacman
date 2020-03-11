@@ -400,6 +400,7 @@ static int adjustVel(int vel, const int *velFactor) {
 
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
 static const int velFactor = 15; // max velocity;
+static bool pollReceiveMode = false;
 
 // this is called every 33 ms, barring the that frames are skipped!
 static void mainGameLogic(void) {
@@ -413,16 +414,28 @@ static void mainGameLogic(void) {
         I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
         xVel = adjustVel((int) dataBuf, &velFactor);
 
-        if (tickCounter > 100) { // send a get request every 10 seconds to check for new baddies
-            tickCounter = 0;
-            buildRequest("pac_loc", coordsToString(pac.x, pac.y));
-            buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
-            buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
-            buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
-            buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
-            sendRequest();
+        if (pollReceiveMode) {
+            char *receive = networkReceive();
+            if (!strcmp("POLL", receive)) {
+                printf("%s\n", receive);
+            }
+        }
 
-            receiveString();
+        if (tickCounter > 50) { // send a get request every 10 seconds to check for new baddies
+            tickCounter = 0;
+            pollReceiveMode = false;
+//            buildRequest("pac_loc", coordsToString(pac.x, pac.y));
+//            buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
+//            buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
+//            buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
+//            buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
+//            sendRequest();
+            char *receive = receiveString();
+            if (strcmp("POLL", receive)) {
+                pollReceiveMode = true;
+            } else {
+                printf("%s\n", receive);
+            }
         } else {
             tickCounter++;
         }
