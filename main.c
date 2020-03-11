@@ -263,7 +263,8 @@ static void startScreenLogic(void) {
         for (j = 0; j < MAP_SIZE; j++) {
             if (map[j][i] == WALL) {
                 fillRect(i * blockSize, j * blockSize, blockSize, blockSize, WALL_COLOR);
-            } else if (map[j][i] == POINT) { // point pac
+            } else if (map[j][i] == POINT || map[j][i] == PLACEHOLDER) { // point pac
+                map[j][i] = POINT;
                 k =  blockSize / 2;
                 fillRect(i * blockSize + blockSize / 2 - k / 2, j * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
             } else if (map[j][i] == SPAWN) { // start loc player
@@ -441,7 +442,7 @@ static void mainGameLogic(void) {
         }
     }
     if(map[pac.y/blockSize][pac.x/blockSize] == 2) {
-        map[pac.y/blockSize][pac.x/blockSize] = 0;
+        map[pac.y/blockSize][pac.x/blockSize] = PLACEHOLDER;
         playSound(BEEP);
         pac.score++;
         drawScore();
