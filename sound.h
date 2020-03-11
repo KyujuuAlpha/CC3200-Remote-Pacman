@@ -10,7 +10,7 @@
 
 // 0 - 9 (2000 Hz to 5000 Hz) for each character
 // each char lasts 33 ms
-#define BEEP  "7799"
+#define BEEP  "79"
 #define DEATH "8888666611111100000000"
 
 #define ZERO_CHAR '0'

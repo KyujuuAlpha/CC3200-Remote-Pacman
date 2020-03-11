@@ -409,7 +409,6 @@ static void mainGameLogic(void) {
         xVel = adjustVel((int) dataBuf, &velFactor);
 
         if (tickCounter > 100) { // send a get request every 10 seconds to check for new baddies
-            playSound(BEEP);
             tickCounter = 0;
             buildRequest("pac_loc", coordsToString(pac.x, pac.y));
             buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
@@ -443,6 +442,7 @@ static void mainGameLogic(void) {
     }
     if(map[pac.y/blockSize][pac.x/blockSize] == 2) {
         map[pac.y/blockSize][pac.x/blockSize] = 0;
+        playSound(BEEP);
         pac.score++;
         drawScore();
     }
