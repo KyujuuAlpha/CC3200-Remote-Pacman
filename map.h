@@ -14,7 +14,8 @@
 #define WALL        1
 #define POINT       2
 #define SPAWN       3
-#define PLACEHOLDER 4
+#define ENEMY       4
+#define PLACEHOLDER 5
 
 #define WALL_COLOR   0x00D0
 #define POINT_COLOR  0xF5C0

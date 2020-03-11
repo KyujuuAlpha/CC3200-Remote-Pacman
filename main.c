@@ -272,7 +272,7 @@ static void startScreenLogic(void) {
                 pac.x = i*4;
                 pac.score = 0;
                 drawScore();
-            } if (map[j][i] == 4) { // start loc baddies
+            } if (map[j][i] == ENEMY) { // start loc baddies
                 if (initBaddie >= 4) continue;
                 badGuys[initBaddie].y = j*4;
                 badGuys[initBaddie].x = i*4;
