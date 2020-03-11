@@ -404,8 +404,10 @@ static bool pollReceiveMode = false, requestFlag = false;
 
 // this is called every 33 ms, barring the that frames are skipped!
 static void mainGameLogic(void) {
+
     if (tickTimer >= 2) { // get new data 10 times a second
-        unsigned char dataBuf; // buffer that holds what was returned from a register
+        static char *receive;
+        static unsigned char dataBuf; // buffer that holds what was returned from a register
         tickTimer = 0;
         I2C_IF_Write(ACCDEV, &xREG, 1, 0); // get the x and y accelerometer information using i2c
         I2C_IF_Read(ACCDEV, &dataBuf, 1);  // and adjust the velocities accordingly.
@@ -415,17 +417,18 @@ static void mainGameLogic(void) {
         xVel = adjustVel((int) dataBuf, &velFactor);
 
         if (pollReceiveMode) {
-            char *receive = networkReceive();
+            receive = networkReceive();
             if (strstr(receive, "POLL") == NULL) {
                 if (!requestFlag) {
-                    playSound(DEATH);
+                    /* TODO
+                     * GET request logic
+                     */
                 }
                 pollReceiveMode = false;
             }
         }
 
-        if (tickCounter > 20) {
-            char *receive;
+        if (tickCounter > 20) { // alternate between POST and GET every 2 seconds
             tickCounter = 0;
             if (requestFlag = !requestFlag) { // if now true
                 pollReceiveMode = false;
@@ -442,7 +445,9 @@ static void mainGameLogic(void) {
                 pollReceiveMode = true;
             } else {
                 if (!requestFlag) {
-                    playSound(DEATH);
+                    /* TODO
+                     * GET request logic
+                     */
                 }
                 pollReceiveMode = false;
             }
@@ -473,9 +478,9 @@ static void mainGameLogic(void) {
     }
     if(map[pac.y/blockSize][pac.x/blockSize] == POINT) {
         map[pac.y/blockSize][pac.x/blockSize] = PLACEHOLDER;
-        playSound(BEEP);
         pac.score++;
         drawScore();
+        playSound(BEEP);
     }
 }
 
@@ -492,6 +497,7 @@ static void gameOverLogic(void) {
     }
     if (tickTimer > 30 * 5) { // wait five seconds (30 frames * 5)
         pollReceiveMode = false;
+        requestFlag = false;
         state = START_STATE;
     } else {
         tickTimer++;
