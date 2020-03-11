@@ -751,8 +751,8 @@ static char* http_get(int iTLSSockID){
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return "";
     }
-    lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), 0);
-    if(lRetVal < 0) {
+    lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), SL_MSG_DONTWAIT);
+    if(lRetVal < 0 && lRetVal != SL_ERROR_BSD_EAGAIN) {
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return "";
     } else {
@@ -816,12 +816,11 @@ static int http_post(int iTLSSockID, char *text){
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return lRetVal;
     }
-    lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), 0);
-    if(lRetVal < 0) {
+    lRetVal = sl_Recv(iTLSSockID, &acRecvbuff[0], sizeof(acRecvbuff), SL_MSG_DONTWAIT);
+    if(lRetVal < 0 && lRetVal != SL_ERROR_BSD_EAGAIN) {
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return lRetVal;
-    }
-    else {
+    } else {
         acRecvbuff[lRetVal+1] = '\0';
     }
 
