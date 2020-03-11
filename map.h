@@ -18,6 +18,12 @@
 #define WALL_COLOR   0x00D0
 #define POINT_COLOR  0xF5C0
 #define PLAYER_COLOR 0xEFE0
+#define BAD_1_COLOR 0xE800
+#define BAD_2_COLOR 0x075A
+#define BAD_3_COLOR 0xECA0
+#define BAD_4_COLOR 0xE814
+
+
 
 unsigned char map[MAP_SIZE][MAP_SIZE] = {
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},

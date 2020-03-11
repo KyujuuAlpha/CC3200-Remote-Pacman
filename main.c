@@ -53,6 +53,7 @@ extern uVectorEntry __vector_table;
 struct Pac {
     int x;
     int y;
+    int score;
 };
 
 struct Baddie {
@@ -60,6 +61,7 @@ struct Baddie {
     int y;
     int color;
     char dir;
+    char prevDir;
 };
 // static function prototypes
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
@@ -112,7 +114,7 @@ void main() {
 
     // Initialize adafruit, then call the game loop
     Adafruit_Init();
-    gameInit();
+    while(1) gameInit();
 }
 
 // Board initialization function
@@ -144,32 +146,71 @@ int abs(int val) {
     return val;
 }
 
-static bool yCollision(struct Pac *pac, int *yVel) {
+static bool yCollision(int x, int y, int yVel) {
     // Wall check
     const int blockSize = WIDTH / MAP_SIZE;
     int blockX, blockY;
-    blockX = ((*pac).x + 2) / blockSize;
-    if (*yVel < 0)
+    blockX = (x + 2) / blockSize;
+    if (yVel < 0)
     {
-        blockY = ((*pac).y + *yVel) / blockSize;
+        blockY = (y + yVel) / blockSize;
     } else {
-        blockY = ((*pac).y + *yVel + PAC_SIZE - 1) / blockSize;
+        blockY = (y + yVel + PAC_SIZE - 1) / blockSize;
     }
     return map[blockY][blockX] == 1;
 }
 
-static bool xCollision(struct Pac *pac, int *xVel) {
+static bool xCollision(int x, int y, int xVel) {
     // Wall check
     const int blockSize = WIDTH / MAP_SIZE;
     int blockX, blockY;
-    blockY = ((*pac).y+2) / blockSize;
-    if (*xVel < 0)
+    blockY = (y+2) / blockSize;
+    if (xVel < 0)
     {
-        blockX = ((*pac).x + *xVel) / blockSize;
+        blockX = (x + xVel) / blockSize;
     } else {
-        blockX = ((*pac).x + *xVel + PAC_SIZE - 1) / blockSize;
+        blockX = (x + xVel + PAC_SIZE - 1) / blockSize;
     }
     return map[blockY][blockX] == 1;
+}
+
+void gameOver(struct Pac* pac) {
+    fillRect(0, 0, WIDTH - 1, HEIGHT - 1, 0x0000);
+    setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 16);
+    Outstr("GAME OVER");
+    setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 8);
+    Outstr("Score: ");
+    Outstr(integerToString(pac->score));
+    delay(100);
+}
+
+bool enemyHit(struct Pac* pac, struct Baddie* bad) {
+    return ((int)pac->x/4 == (int)bad->x/4 && (int)pac->y/4 == (int)bad->y/4);
+}
+
+static void updateBaddieLoc(struct Baddie* bad) {
+    int velX = 0;
+    int velY = 0;
+    switch (bad->dir) {
+    case 'U':
+        velY = -1;
+        break;
+    case 'D':
+        velY = 1;
+        break;
+    case 'L':
+        velX = -1;
+        break;
+    case 'R':
+        velX = 1;
+        break;
+    }
+    if(!yCollision(bad->x, bad->y, velY)) {
+        bad->y += velY;
+    }
+    if(!xCollision(bad->x, bad->y, velX)) {
+        bad->x += velX;
+    }
 }
 
 // function that updates the Pac's location accordingly and keeps it within bounds
@@ -182,14 +223,14 @@ static void updatePacLoc(struct Pac *pac, int *xVel, int *yVel) {
     if(*xVel < -MAX_VEL) *xVel = -MAX_VEL;
     if (*yVel == 0 && *xVel == 0) return;
 
-    if(yCollision(pac, yVel) && xCollision(pac, xVel)) { // there's a collision in both directions
+    if(yCollision(pac->x, pac->y, *yVel) && xCollision(pac->x, pac->y, *xVel)) { // there's a collision in both directions
         *xVel = 0;
         *yVel = 0;
         return;
         // don't move
     }
     if(yGreater) { // y is greater
-        if (!yCollision(pac, yVel)) { // no collision moving in y
+        if (!yCollision(pac->x, pac->y, *yVel)) { // no collision moving in y
             (*pac).y += *yVel;
             (*pac).x = (((*pac).x + 2) / 4) * 4;
             return;
@@ -198,12 +239,12 @@ static void updatePacLoc(struct Pac *pac, int *xVel, int *yVel) {
         yGreater = false;
     }
     if(!yGreater) { // either x is greater or y collided
-        if (!xCollision(pac, xVel)) { // no collision moving in y
+        if (!xCollision(pac->x, pac->y, *xVel)) { // no collision moving in y
             (*pac).x += *xVel;
             (*pac).y = (((*pac).y + 2) / 4) * 4;
             return;
         }
-        if (!yCollision(pac, yVel)) { // no collision moving in y
+        if (!yCollision(pac->x, pac->y, *yVel)) { // no collision moving in y
             (*pac).y += *yVel;
             (*pac).x = (((*pac).x + 2) / 4) * 4;
             return;
@@ -253,13 +294,19 @@ static unsigned long getCurrentSysTimeMS(void) {
     return (unsigned long) ((unsigned long long) PRCMSlowClkCtrGet() / 32768.0 * 1000.0);
 }
 
+void drawScore(struct Pac pac) {
+    fillRect(12, 4, 16, 8, 0x0000);
+    setCursor(12,4);
+    Outstr(integerToString(pac.score));
+}
+
 static void gameInit(void) {
     struct Pac pac; // structure that keeps track of the pac's loc
     struct Baddie badGuys[4] = {
-                                 { 0, 0, RED },
-                                 { 0, 0, CYAN },
-                                 { 0, 0, GREEN },
-                                 { 0, 0, MAGENTA }
+                                 { 0, 0, BAD_1_COLOR },
+                                 { 0, 0, BAD_2_COLOR },
+                                 { 0, 0, BAD_3_COLOR },
+                                 { 0, 0, BAD_4_COLOR }
                                 };
     unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
     const int velFactor = 15; // max velocity
@@ -268,6 +315,7 @@ static void gameInit(void) {
     unsigned int color = PLAYER_COLOR; // starting color of the pac
     int xVel = 0; // velocities of the pac
     int yVel = 0;
+    int initBaddie = 0;
     
     fillScreen(0x0000); // first clear the screen
 
@@ -284,11 +332,15 @@ static void gameInit(void) {
             } else if (map[j][i] == SPAWN) { // start loc player
                 pac.y = j*4;
                 pac.x = i*4;
-            } /*  if (map[j][i] == 4) { // start loc baddies
+                pac.score = 0;
+                drawScore(pac);
+            } if (map[j][i] == 4) { // start loc baddies
                 if (initBaddie >= 4) continue;
                 badGuys[initBaddie].y = j*4;
                 badGuys[initBaddie].x = i*4;
-            }*/
+                badGuys[initBaddie].dir = 'L';
+                initBaddie++;
+            }
         }
     }
 
@@ -305,10 +357,10 @@ static void gameInit(void) {
                 yVel = adjustVel((int) dataBuf, &velFactor);
                 I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
                 I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
-                xVel = adjustVel((int) dataBuf, &velFactor);
+               xVel = adjustVel((int) dataBuf, &velFactor);
 
                 if (tickCounter > 100) { // send a get request every 10 seconds to check for new baddies
-                    playSound(DEATH);
+                    //playSound(DEATH);
                     tickCounter = 0;
                     buildRequest("pac_x", integerToString(pac.x));
                     buildRequest("pac_y", integerToString(pac.y));
@@ -326,6 +378,21 @@ static void gameInit(void) {
             }
             updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
             fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, color); // draw new ball on the screen
+            int bad;
+            for (bad = 0; bad < 4; bad++) {
+                fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, 0x0000);
+                updateBaddieLoc(&badGuys[bad]);
+                fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, badGuys[bad].color);
+                if(enemyHit(&pac, &badGuys[bad])) {
+                    gameOver(&pac);
+                    return;
+                }
+            }
+            if(map[pac.y/blockSize][pac.x/blockSize] == 2) {
+                map[pac.y/blockSize][pac.x/blockSize] = 0;
+                pac.score++;
+                drawScore(pac);
+            }
         } while (frameDrop-- > 0);
         updateSoundModules();
 
