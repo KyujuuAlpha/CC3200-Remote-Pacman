@@ -242,6 +242,12 @@ static struct Baddie badGuys[4] = {
 static int xVel = 0, yVel = 0; // velocities of the pac
 static int tickTimer = 0, tickCounter = 0;
 
+static void drawScore(void) {
+    fillRect(12, 4, 17, 8, 0x0000);
+    setCursor(12,4);
+    Outstr(integerToString(pac.score));
+}
+
 static void startScreenLogic(void) {
     fillScreen(0x0000); // first clear the screen
     // intial stuff
@@ -257,7 +263,7 @@ static void startScreenLogic(void) {
                 pac.y = j*4;
                 pac.x = i*4;
                 pac.score = 0;
-                drawScore(pac);
+                drawScore();
             } if (map[j][i] == 4) { // start loc baddies
                 if (initBaddie >= 4) continue;
                 badGuys[initBaddie].y = j*4;
@@ -269,6 +275,7 @@ static void startScreenLogic(void) {
     }
     tickTimer = 0;
     tickCounter = 0;
+    frameDrop = 0;
     state = GAME_STATE; // switch to main game state, there is a possibility for a title screen
 }
 
@@ -379,12 +386,6 @@ static int adjustVel(int vel, const int *velFactor) {
     return -(vel * (*velFactor) / (255 / 2)); // adjust the velocity accordingly
 }
 
-static void drawScore(struct Pac pac) {
-    fillRect(12, 4, 16, 8, 0x0000);
-    setCursor(12,4);
-    Outstr(integerToString(pac.score));
-}
-
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
 static const int velFactor = 15; // max velocity;
 
@@ -436,7 +437,7 @@ static void mainGameLogic(void) {
     if(map[pac.y/blockSize][pac.x/blockSize] == 2) {
         map[pac.y/blockSize][pac.x/blockSize] = 0;
         pac.score++;
-        drawScore(pac);
+        drawScore();
     }
 }
 
@@ -451,7 +452,7 @@ static void gameOverLogic(void) {
         Outstr(integerToString(pac.score));
         playSound(DEATH);
     }
-    if (tickTimer > 30 * 5) { // wait five seconds
+    if (tickTimer > 30 * 5) { // wait five seconds (30 frames * 5)
         state = START_STATE;
     } else {
         tickTimer++;
