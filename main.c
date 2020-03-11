@@ -257,8 +257,12 @@ static void drawScore(void) {
 
 static void startScreenLogic(void) {
     fillScreen(0x0000); // first clear the screen
-    // intial stuff
     int i, j, k, initBaddie = 0;
+    for (i = 0; i < 4; i++) {
+        badGuys[i].x = -1;
+        badGuys[i].y = -1;
+    }
+    // intial stuff
     for (i = 0; i < MAP_SIZE; i++) {
         for (j = 0; j < MAP_SIZE; j++) {
             if (map[j][i] == WALL) {
