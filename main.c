@@ -176,7 +176,7 @@ static bool xCollision(int x, int y, int xVel) {
 }
 
 void gameOver(struct Pac* pac) {
-    fillRect(0, 0, WIDTH - 1, HEIGHT - 1, 0x0000);
+    fillRect(0, 0, WIDTH, HEIGHT, 0x0000);
     setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 16);
     Outstr("GAME OVER");
     setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 8);
