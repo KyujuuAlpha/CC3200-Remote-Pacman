@@ -582,8 +582,9 @@ static int tls_connect() {
     //
     // configure the socket as TLS1.2
     //
-    lRetVal = sl_SetSockOpt(iSockID, SL_SOL_SOCKET, SL_SO_SECMETHOD, &ucMethod,\
-                               sizeof(ucMethod));
+    SlSockNonblocking_t enableOption;
+    enableOption.NonblockingEnabled = 1;
+    lRetVal = sl_SetSockOpt(iSockID, SL_SOL_SOCKET, SL_SO_NONBLOCKING, (_u8 *)&enableOption,sizeof(enableOption));
     if(lRetVal < 0) {
         return printErrConvenience("Device couldn't set socket options \n\r", lRetVal);
     }
