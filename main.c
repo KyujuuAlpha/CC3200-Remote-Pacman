@@ -195,13 +195,20 @@ static unsigned long getCurrentSysTimeMS(void) {
 }
 
 static char state;
+static bool skipFrameDrop;
 static void gameLoop(void) {
     // main game loop
     unsigned long prevTime = getCurrentSysTimeMS();
     long newDelay = 0;
+    skipFrameDrop = false;
     state = START_STATE; // initial state
 
     while (1) {
+        if (skipFrameDrop) {
+            frameDrop = 0;
+            skipFrameDrop = false;
+        }
+
         do {
             switch (state) {
                 case START_STATE:
@@ -275,7 +282,7 @@ static void startScreenLogic(void) {
     }
     tickTimer = 0;
     tickCounter = 0;
-    frameDrop = 0;
+    skipFrameDrop = true;
     state = GAME_STATE; // switch to main game state, there is a possibility for a title screen
 }
 
