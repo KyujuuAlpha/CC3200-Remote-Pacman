@@ -68,7 +68,7 @@ static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
 static long dropFrame(long frameCount);
 static char *encodeCoords(int *coords, int size);
-static char *integerToString(int i);
+static char *coordsToString(int i, int j);
 static unsigned long getCurrentSysTimeMS(void);
 static void gameInit(void);
 static void BoardInit(void);
@@ -284,9 +284,9 @@ static char *encodeCoords(int *coords, int size) {
     return encode;
 }
 
-static char *integerToString(int i) {
+static char *coordsToString(int i, int j) {
     static char stringBuf[] = "";
-    sprintf(stringBuf, "%d", i);
+    sprintf(stringBuf, "%d %d", i, j);
     return stringBuf;
 }
 
@@ -357,13 +357,16 @@ static void gameInit(void) {
                 yVel = adjustVel((int) dataBuf, &velFactor);
                 I2C_IF_Write(ACCDEV, &yREG, 1, 0);  // the x and y values from the registers are flipped
                 I2C_IF_Read(ACCDEV, &dataBuf, 1);   // since we found that they changed the wrong axis
-               xVel = adjustVel((int) dataBuf, &velFactor);
+                xVel = adjustVel((int) dataBuf, &velFactor);
 
                 if (tickCounter > 100) { // send a get request every 10 seconds to check for new baddies
-                    //playSound(DEATH);
+                    playSound(DEATH);
                     tickCounter = 0;
-                    buildRequest("pac_x", integerToString(pac.x));
-                    buildRequest("pac_y", integerToString(pac.y));
+                    buildRequest("pac_loc", coordsToString(pac.x, pac.y));
+                    buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
+                    buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
+                    buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
+                    buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
                     sendRequest();
 
                     receiveString();
