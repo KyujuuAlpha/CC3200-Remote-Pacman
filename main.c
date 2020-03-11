@@ -299,7 +299,7 @@ static bool yCollision(int x, int y, int yVel) {
     } else {
         blockY = (y + yVel + PAC_SIZE - 1) / blockSize;
     }
-    return map[blockY][blockX] == 1;
+    return map[blockY][blockX] == WALL;
 }
 
 static bool xCollision(int x, int y, int xVel) {
@@ -313,7 +313,7 @@ static bool xCollision(int x, int y, int xVel) {
     } else {
         blockX = (x + xVel + PAC_SIZE - 1) / blockSize;
     }
-    return map[blockY][blockX] == 1;
+    return map[blockY][blockX] == WALL;
 }
 
 bool enemyHit(struct Pac* pac, struct Baddie* bad) {
@@ -441,7 +441,7 @@ static void mainGameLogic(void) {
             return;
         }
     }
-    if(map[pac.y/blockSize][pac.x/blockSize] == 2) {
+    if(map[pac.y/blockSize][pac.x/blockSize] == POINT) {
         map[pac.y/blockSize][pac.x/blockSize] = PLACEHOLDER;
         playSound(BEEP);
         pac.score++;
