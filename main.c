@@ -400,7 +400,7 @@ static int adjustVel(int vel, const int *velFactor) {
 
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
 static const int velFactor = 15; // max velocity;
-static bool pollReceiveMode = false;
+static bool pollReceiveMode = false, requestFlag = false;
 
 // this is called every 33 ms, barring the that frames are skipped!
 static void mainGameLogic(void) {
@@ -417,25 +417,33 @@ static void mainGameLogic(void) {
         if (pollReceiveMode) {
             char *receive = networkReceive();
             if (strstr(receive, "POLL") == NULL) {
-                // found something!
+                if (!requestFlag) {
+                    playSound(DEATH);
+                }
                 pollReceiveMode = false;
             }
         }
 
-        if (tickCounter > 50) { // send a get request every 10 seconds to check for new baddies
+        if (tickCounter > 20) {
+            char *receive;
             tickCounter = 0;
-            pollReceiveMode = false;
-//            buildRequest("pac_loc", coordsToString(pac.x, pac.y));
-//            buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
-//            buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
-//            buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
-//            buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
-//            sendRequest();
-            char *receive = receiveString();
+            if (requestFlag = !requestFlag) { // if now true
+                pollReceiveMode = false;
+                buildRequest("pac_loc", coordsToString(pac.x, pac.y));
+                buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
+                buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
+                buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
+                buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
+                receive = sendRequest();
+            } else { // if now false
+                receive = receiveString();
+            }
             if (strstr(receive, "POLL") != NULL) {
                 pollReceiveMode = true;
             } else {
-                // found something!
+                if (!requestFlag) {
+                    playSound(DEATH);
+                }
                 pollReceiveMode = false;
             }
         } else {
@@ -483,6 +491,7 @@ static void gameOverLogic(void) {
         playSound(DEATH);
     }
     if (tickTimer > 30 * 5) { // wait five seconds (30 frames * 5)
+        pollReceiveMode = false;
         state = START_STATE;
     } else {
         tickTimer++;
