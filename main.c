@@ -241,10 +241,10 @@ const int blockSize = WIDTH / MAP_SIZE;
 
 static struct Pac pac; // structure that keeps track of the pac's loc
 static struct Baddie badGuys[4] = {
-                             { 0, 0, BAD_1_COLOR },
-                             { 0, 0, BAD_2_COLOR },
-                             { 0, 0, BAD_3_COLOR },
-                             { 0, 0, BAD_4_COLOR }
+                             { -1, -1, BAD_1_COLOR },
+                             { -1, -1, BAD_2_COLOR },
+                             { -1, -1, BAD_3_COLOR },
+                             { -1, -1, BAD_4_COLOR }
                             };
 static int xVel = 0, yVel = 0; // velocities of the pac
 static int tickTimer = 0, tickCounter = 0;
@@ -272,7 +272,7 @@ static void startScreenLogic(void) {
                 pac.x = i*4;
                 pac.score = 0;
                 drawScore();
-            } if (map[j][i] == ENEMY) { // start loc baddies
+            } else if (map[j][i] == ENEMY) { // start loc baddies
                 if (initBaddie >= 4) continue;
                 badGuys[initBaddie].y = j*4;
                 badGuys[initBaddie].x = i*4;
@@ -432,6 +432,9 @@ static void mainGameLogic(void) {
     fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, PLAYER_COLOR); // draw new ball on the screen
     int bad;
     for (bad = 0; bad < 4; bad++) {
+        if (badGuys[bad].x == -1) {
+            continue;
+        }
         fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, 0x0000);
         updateBaddieLoc(&badGuys[bad]);
         fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, badGuys[bad].color);
