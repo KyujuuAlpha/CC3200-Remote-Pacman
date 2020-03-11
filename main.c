@@ -398,6 +398,12 @@ static int adjustVel(int vel, const int *velFactor) {
     return -(vel * (*velFactor) / (255 / 2)); // adjust the velocity accordingly
 }
 
+static void parseGETRequest(char *request) {
+    /* TODO
+     * Get Request Logic
+     */
+}
+
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
 static const int velFactor = 15; // max velocity;
 static bool pollReceiveMode = false, requestFlag = false;
@@ -417,11 +423,9 @@ static void mainGameLogic(void) {
 
         if (pollReceiveMode) {
             receive = networkReceive();
-            if (strstr(receive, "POLL") == NULL) {
+            if (strlen(receive) > 4) {
                 if (!requestFlag) {
-                    /* TODO
-                     * GET request logic
-                     */
+                    parseGETRequest(receive);
                 }
                 pollReceiveMode = false;
             }
@@ -429,26 +433,25 @@ static void mainGameLogic(void) {
 
         if (tickCounter > 20) { // alternate between POST and GET every 2 seconds
             tickCounter = 0;
-            if (requestFlag = !requestFlag) { // if now true
-                pollReceiveMode = false;
-                buildRequest("pac_loc", coordsToString(pac.x, pac.y));
-                buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
-                buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
-                buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
-                buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
-                receive = sendRequest();
-            } else { // if now false
-                receive = receiveString();
-            }
-            if (strstr(receive, "POLL") != NULL) {
-                pollReceiveMode = true;
-            } else {
-                if (!requestFlag) {
-                    /* TODO
-                     * GET request logic
-                     */
+            if (!pollReceiveMode) { //only continue if received the response to the old request
+                if (requestFlag = !requestFlag) { // if now true
+                    buildRequest("pac_loc", coordsToString(pac.x, pac.y));
+                    buildRequest("b1_loc", coordsToString(badGuys[0].x, badGuys[0].y));
+                    buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
+                    buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
+                    buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
+                    receive = sendRequest();
+                } else { // if now false
+                    receive = receiveString();
                 }
-                pollReceiveMode = false;
+                if (strlen(receive) <= 4) {
+                    pollReceiveMode = true;
+                } else {
+                    if (!requestFlag) {
+                        parseGETRequest(receive);
+                    }
+                    pollReceiveMode = false;
+                }
             }
         } else {
             tickCounter++;

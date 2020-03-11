@@ -31,9 +31,9 @@
 
 #define ZEROCHAR '0'
 
-#define POSTHEADER "POST /things/CC3200_Thing/shadow HTTP/1.1\n\r"
-#define GETHEADER "GET /things/CC3200_Thing/shadow HTTP/1.1\n\r"
-#define HOSTHEADER "Host: a26ypaoxj1nj7v-ats.iot.us-west-2.amazonaws.com\r\n"
+#define POSTHEADER "POST /things/CC3200_Thing/shadow HTTP/1.1\r\n"
+#define GETHEADER "GET /things/CC3200_Thing/shadow HTTP/1.1\r\n"
+#define HOSTHEADER "Host: a1euv4eww1wx8z-ats.iot.us-west-2.amazonaws.com\r\n"
 #define CHEADER "Connection: Keep-Alive\r\n"
 #define CTHEADER "Content-Type: application/json; charset=utf-8\r\n"
 #define CLHEADER1 "Content-Length: "
