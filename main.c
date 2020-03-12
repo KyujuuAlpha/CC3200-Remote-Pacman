@@ -67,6 +67,8 @@ struct Pac {
 struct Baddie {
     int x;
     int y;
+    int velX;
+    int velY;
     int color;
     char dir;
     char* dirQueue;
@@ -237,10 +239,10 @@ const int blockSize = WIDTH / MAP_SIZE;
 
 static struct Pac pac; // structure that keeps track of the pac's loc
 static struct Baddie badGuys[4] = {
-                             { -1, -1, BAD_1_COLOR, "", false },
-                             { -1, -1, BAD_2_COLOR, "", false },
-                             { -1, -1, BAD_3_COLOR, "", false },
-                             { -1, -1, BAD_4_COLOR, "", false }
+                             { -1, -1, 0, 0, BAD_1_COLOR, 0, "", false },
+                             { -1, -1, 0, 0, BAD_2_COLOR, 0, "", false },
+                             { -1, -1, 0, 0, BAD_3_COLOR, 0, "", false },
+                             { -1, -1, 0, 0, BAD_4_COLOR, 0, "", false }
                             };
 static int xVel = 0, yVel = 0; // velocities of the pac
 static int tickTimer = 0, tickCounter = 0;
@@ -320,50 +322,60 @@ bool enemyHit(struct Pac* pac, struct Baddie* bad) {
 }
 
 char decideDir(struct Baddie *bad) {
-    char dirChoice = 0;
+    char dirChoice = 4;
     if (bad->dirQueue[0] != '\0') {
-        dirChoice = bad->dirQueue[0] - '0';
-        bad->dirQueue++;
-        if (bad->dirQueue[0] == '\0') {
-            bad->ready = true;
-        }
-        return dirChoice;
+        do {
+            if (bad->dirQueue[0] == '\0') {
+                break;
+            }
+            dirChoice = bad->dirQueue[0] - '0';
+            bad->dirQueue++;
+            if (bad->dirQueue[0] == '\0') {
+                bad->ready = true;
+            }
+        } while (!bad->validMoves[dirChoice]);
     }
-    srand((unsigned int) getCurrentSysTimeMS());
-    int sanityCheck = 0; // prevents looping forever in case no valid moves
-    dirChoice = rand() % 4;
-    while (!bad->validMoves[dirChoice] && sanityCheck < 4) {
-        dirChoice++;
-        sanityCheck++;
-        if (dirChoice == 4) dirChoice = 0;
+    switch (dirChoice) {
+        case 0:
+            bad->velY = -1;
+            break;
+        case 1:
+            bad->velX = -1;
+            break;
+        case 2:
+            bad->velX = 1;
+            break;
+        case 3:
+            bad->velY = 1;
+            break;
     }
+//    srand((unsigned int) getCurrentSysTimeMS());
+//    int sanityCheck = 0; // prevents looping forever in case no valid moves
+//    dirChoice = rand() % 4;
+//    while (!bad->validMoves[dirChoice] && sanityCheck < 4) {
+//        dirChoice++;
+//        sanityCheck++;
+//        if (dirChoice == 4) dirChoice = 0;
+//    }
     return dirChoice;
 }
 
 static void updateBaddieLoc(struct Baddie* bad) {
-    int velX = 0;
-    int velY = 0;
-    switch (bad->dir) {
-    case 0: // U
-        velY = -1;
-        break;
-    case 1: // L
-        velX = -1;
-        break;
-    case 2: // R
-        velX = 1;
-        break;
-    case 3: // D
-        velY = 1;
-        break;
+    if(bad->velY != 0) {
+        if (!yCollision(bad->x, bad->y, bad->velY)) {
+            bad->y += bad->velY;
+            bad->x = ((bad->x + 2) / 4) * 4;
+        } else {
+            bad->velY = 0;
+        }
     }
-    if(velY != 0 && !yCollision(bad->x, bad->y, velY)) {
-        bad->y += velY;
-        bad->x = ((bad->x + 2) / 4) * 4;
-    }
-    if(velX != 0 && !xCollision(bad->x, bad->y, velX)) {
-        bad->x += velX;
-        bad->y = ((bad->y + 2) / 4) * 4;
+    if(bad->velX != 0) {
+        if (!xCollision(bad->x, bad->y, bad->velX)) {
+            bad->x += bad->velX;
+            bad->y = ((bad->y + 2) / 4) * 4;
+        } else {
+            bad->velX = 0;
+        }
     }
     determineValidMoves(bad);
 }
@@ -419,7 +431,6 @@ static int adjustVel(int vel, const int *velFactor) {
 
 static void parseGETRequest(char *request) {
     parseJSON(request);
-    //printf("%s %s\n", getValue("bad_ctrl"), getValue("bad_dir"));
     char *val;
     if (badGuys[0].dirQueue[0] == '\0' && !badGuys[0].ready) {
         val = getValue("b1_q");
@@ -475,7 +486,7 @@ static void mainGameLogic(void) {
             }
         }
 
-        if (tickCounter > 20) { // alternate between POST and GET every 2 seconds
+        if (tickCounter > 10) { // alternate between POST and GET every 2 seconds
             tickCounter = 0;
 #if ENABLE_SERVER == 1
             if (!pollReceiveMode) { //only continue if received the response to the old request
@@ -544,20 +555,10 @@ static void mainGameLogic(void) {
             pointX[pointIndex] = badGridX + 1;
             pointY[pointIndex++] = badGridY;
         }
-        bool prevValid[4] = {
-                              badGuys[bad].validMoves[0],
-                              badGuys[bad].validMoves[1],
-                              badGuys[bad].validMoves[2],
-                              badGuys[bad].validMoves[3]
-                            };
         updateBaddieLoc(&badGuys[bad]);
-        int boolIndex = 0;
-        // Determines if the valid moves has changed, if so, determine new move
-        for(boolIndex = 0; boolIndex < 4; boolIndex++) {
-            if (prevValid[boolIndex] != badGuys[bad].validMoves[boolIndex]) {
-                badGuys[bad].dir = decideDir(&badGuys[bad]);
-                break;
-            }
+        // if velocities zero
+        if (badGuys[bad].velX == 0 && badGuys[bad].velY == 0) {
+            badGuys[bad].dir = decideDir(&badGuys[bad]);
         }
         fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, badGuys[bad].color);
         if(enemyHit(&pac, &badGuys[bad])) {
