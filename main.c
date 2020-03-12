@@ -438,6 +438,7 @@ static void parseGETRequest(char *request) {
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
 static const int velFactor = 15; // max velocity;
 static bool pollReceiveMode = false, requestFlag = false;
+static char pointX[12], pointY[12], pointIndex = 0;
 
 // this is called every 33 ms, barring the that frames are skipped!
 static void mainGameLogic(void) {
@@ -496,34 +497,24 @@ static void mainGameLogic(void) {
         fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, 0x0000);  // erase the old location of the pac
     }
     updatePacLoc(&pac, &xVel, &yVel); // update the pac's location
-    fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, PLAYER_COLOR); // draw new ball on the screen
+    fillRect(pac.x, pac.y, PAC_SIZE, PAC_SIZE, PLAYER_COLOR); // draw new pac on the screen
     int bad;
+    pointIndex = 0;
     for (bad = 0; bad < 4; bad++) {
-        if (badGuys[bad].x == -1) {
-            continue;
-        }
         int badGridX = badGuys[bad].x/4;
         int badGridY = badGuys[bad].y/4;
         fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, 0x0000);
         if (map[badGridY][badGridX] == POINT) {
-            int k =  blockSize / 2;
-            fillRect(badGridX * blockSize + blockSize / 2 - k / 2, badGridY * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+            pointX[pointIndex] = badGridX;
+            pointY[pointIndex++] = badGridY;
         }
-        if (map[badGridY-1][badGridX] == POINT) {
-            int k =  blockSize / 2;
-            fillRect(badGridX * blockSize + blockSize / 2 - k / 2, (badGridY-1) * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+        if ((badGuys[bad].y + (blockSize / 2)) / 4 != badGridY && map[badGridY + 1][badGridX] == POINT) {
+            pointX[pointIndex] = badGridX;
+            pointY[pointIndex++] = badGridY + 1;
         }
-        if (map[badGridY+1][badGridX] == POINT) {
-            int k =  blockSize / 2;
-            fillRect(badGridX * blockSize + blockSize / 2 - k / 2, (badGridY+1) * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
-        }
-        if (map[badGridY][badGridX-1] == POINT) {
-            int k =  blockSize / 2;
-            fillRect((badGridX-1) * blockSize + blockSize / 2 - k / 2, badGridY * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
-        }
-        if (map[badGridY][badGridX+1] == POINT) {
-            int k =  blockSize / 2;
-            fillRect((badGridX+1) * blockSize + blockSize / 2 - k / 2, badGridY * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+        if ((badGuys[bad].x + (blockSize / 2)) / 4 != badGridX && map[badGridY][badGridX + 1] == POINT) {
+            pointX[pointIndex] = badGridX + 1;
+            pointY[pointIndex++] = badGridY;
         }
         bool prevValid[4] = {
                               badGuys[bad].validMoves[0],
@@ -547,6 +538,18 @@ static void mainGameLogic(void) {
             return;
         }
     }
+    int i, k = blockSize / 2;
+    for (i = 0; i < pointIndex; i++) {
+        for (bad = 0; bad < 4; bad++) {
+            if (pointX[i] == badGuys[bad].x/4 && pointY[i] == badGuys[bad].y/4) {
+                break;
+            }
+            if (bad == 3) {
+                fillRect(pointX[i] * blockSize + blockSize / 2 - k / 2, pointY[i] * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+            }
+        }
+    }
+
     if(map[pac.y/blockSize][pac.x/blockSize] == POINT) {
         map[pac.y/blockSize][pac.x/blockSize] = PLACEHOLDER;
         pac.score++;
