@@ -90,9 +90,10 @@ static void BoardInit(void);
 static void mainGameLogic(void); // game logic for playing
 static void gameOverLogic(void); // logic for reseting
 static void startScreenLogic(void); // logic for init
+static void titleScreenLogic(void); // logic for init
 static void gameLoop(void); // loop over logics based on state
 
-int pellet_counter = 0;
+static int pellet_counter = 0;
 
 // main function definition
 void main() {
@@ -196,6 +197,7 @@ static unsigned long getCurrentSysTimeMS(void) {
     return (unsigned long) ((unsigned long long) PRCMSlowClkCtrGet() / 32768.0 * 1000.0);
 }
 
+static int tickTimer = 0, tickCounter = 0, selectedBaddie = -1;
 static char state;
 static bool skipFrameDrop;
 static void gameLoop(void) {
@@ -203,6 +205,7 @@ static void gameLoop(void) {
     unsigned long prevTime = getCurrentSysTimeMS();
     long newDelay = 0;
     skipFrameDrop = false;
+    tickTimer = 0;
     state = TITLE_SCREEN; // initial state
 
     while (1) {
@@ -251,7 +254,6 @@ static struct Baddie badGuys[4] = {
                              { 3, -1, -1, 0, 0, BAD_4_COLOR, "", false }
                             };
 static int xVel = 0, yVel = 0; // velocities of the pac
-static int tickTimer = 0, tickCounter = 0, selectedBaddie = -1;
 
 static void drawScore(void) {
     fillRect(12, 4, 17, 8, 0x0000); // clears current written score
@@ -276,7 +278,7 @@ static void startScreenLogic(void) {
             } else if (map[j][i] == POINT || map[j][i] == PLACEHOLDER) { // point pac
                 // draw point pellet, reset inactive pellets to active
                 map[j][i] = POINT;
-                pellet_count++;
+                pellet_counter++;
                 k =  blockSize / 2; // middle of tile to draw pellet
                 fillRect(i * blockSize + blockSize / 2 - k / 2, j * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
             } else if (map[j][i] == SPAWN) { // start loc player
@@ -614,8 +616,8 @@ static void mainGameLogic(void) {
         // update score if pac has entered a point tile
         map[pac.y/blockSize][pac.x/blockSize] = PLACEHOLDER;
         pac.score++;
-        pellet_count--;
-        if (pellet_count == 0) {
+        pellet_counter--;
+        if (pellet_counter == 0) {
             state = GOVER_STATE;
         }
         drawScore();
@@ -625,7 +627,7 @@ static void mainGameLogic(void) {
 
 // GAME OVER STUFF
 static void gameOverLogic(void) {
-    if (tickTimer == 0 && pellet_count > 0) {
+    if (tickTimer == 0 && pellet_counter > 0) {
         // clear screen
         fillRect(0, 0, WIDTH, HEIGHT, 0x0000);
         setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 16);
@@ -635,7 +637,7 @@ static void gameOverLogic(void) {
         // draw final score
         Outstr(integerToString(pac.score));
         playSound(DEATH);
-    } else if (tickTimer == 0 && pellet_count == 0) {
+    } else if (tickTimer == 0 && pellet_counter == 0) {
         // clear screen
         fillRect(0, 0, WIDTH, HEIGHT, 0x0000);
         setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 16);
@@ -646,11 +648,11 @@ static void gameOverLogic(void) {
         Outstr(integerToString(pac.score));
         playSound(DEATH);
     }
-    if (tickTimer > 30 * 5 && pellet_count > 0) { // wait five seconds (30 frames * 5)
+    if (tickTimer > 30 * 5 && pellet_counter > 0) { // wait five seconds (30 frames * 5)
         pollReceiveMode = false;
         requestFlag = false;
         state = TITLE_SCREEN;
-    } else if (tickTimer > 30 * 5 && pellet_count == 0) { // wait five seconds (30 frames * 5)
+    } else if (tickTimer > 30 * 5 && pellet_counter == 0) { // wait five seconds (30 frames * 5)
         pollReceiveMode = false;
         requestFlag = false;
         state = START_STATE;
