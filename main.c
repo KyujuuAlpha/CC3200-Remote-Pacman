@@ -47,6 +47,8 @@
 #define GAME_STATE  1
 #define GOVER_STATE 2
 
+#define ENABLE_SERVER 1
+
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
 #endif
@@ -120,8 +122,10 @@ void main() {
     // enable spi for communication
     MAP_SPIEnable(GSPI_BASE);
 
+#if ENABLE_SERVER == 1
     // connect to the network
     networkConnect();
+#endif
 
     // Initialize adafruit, then call the game loop
     Adafruit_Init();
@@ -440,6 +444,7 @@ static void mainGameLogic(void) {
 
         if (tickCounter > 20) { // alternate between POST and GET every 2 seconds
             tickCounter = 0;
+#if ENABLE_SERVER == 1
             if (!pollReceiveMode) { //only continue if received the response to the old request
                 if (requestFlag = !requestFlag) { // if now true
                     buildRequest("pac_loc", coordsToString(pac.x, pac.y));
@@ -460,6 +465,7 @@ static void mainGameLogic(void) {
                     pollReceiveMode = false;
                 }
             }
+#endif
         } else {
             tickCounter++;
         }
