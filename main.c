@@ -319,19 +319,21 @@ bool enemyHit(struct Pac* pac, struct Baddie* bad) {
 }
 
 void decideVelocities(struct Baddie *bad) {
-    char dirChoice = 4, i = 1;
+    char dirChoice = 4, i;
     if (bad->dirQueue[0] != '\0') {
         do {
             if (bad->dirQueue[0] == '\0') {
                 break;
             }
             dirChoice = bad->dirQueue[0] - '0';
+            i = 1;
             while (bad->dirQueue[i - 1] != '\0') {
                 bad->dirQueue[i - 1] = bad->dirQueue[i];
                 i++;
             }
             if (bad->dirQueue[0] == '\0') {
                 bad->ready = true;
+                return;
             }
         } while (!bad->validMoves[dirChoice]);
     }
