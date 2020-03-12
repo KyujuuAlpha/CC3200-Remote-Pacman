@@ -180,7 +180,7 @@ static char *integerToString(int i) {
 
 static int stringToInteger(char *str) {
     static int integerBuf;
-    sscanf(str, "%d", integerBuf);
+    sscanf(str, "%d", &integerBuf);
     return integerBuf;
 }
 
