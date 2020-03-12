@@ -65,6 +65,7 @@ struct Pac {
 };
 
 struct Baddie {
+    int id;
     int x;
     int y;
     int velX;
@@ -236,13 +237,13 @@ const int blockSize = WIDTH / MAP_SIZE;
 
 static struct Pac pac; // structure that keeps track of the pac's loc
 static struct Baddie badGuys[4] = {
-                             { -1, -1, 0, 0, BAD_1_COLOR, "", false },
-                             { -1, -1, 0, 0, BAD_2_COLOR, "", false },
-                             { -1, -1, 0, 0, BAD_3_COLOR, "", false },
-                             { -1, -1, 0, 0, BAD_4_COLOR, "", false }
+                             { 0, -1, -1, 0, 0, BAD_1_COLOR, "", false },
+                             { 1, -1, -1, 0, 0, BAD_2_COLOR, "", false },
+                             { 2, -1, -1, 0, 0, BAD_3_COLOR, "", false },
+                             { 3, -1, -1, 0, 0, BAD_4_COLOR, "", false }
                             };
 static int xVel = 0, yVel = 0; // velocities of the pac
-static int tickTimer = 0, tickCounter = 0;
+static int tickTimer = 0, tickCounter = 0, selectedBaddie = -1;
 
 static void drawScore(void) {
     fillRect(12, 4, 17, 8, 0x0000);
@@ -287,6 +288,7 @@ static void startScreenLogic(void) {
     }
     tickTimer = 0;
     tickCounter = 0;
+    selectedBaddie = -1;
     skipFrameDrop = true;
     state = GAME_STATE; // switch to main game state, there is a possibility for a title screen
 }
@@ -340,7 +342,7 @@ void decideVelocities(struct Baddie *bad) {
                 return;
             }
         } while (!bad->validMoves[dirChoice]);
-    } else {
+    } else if(bad->id != selectedBaddie) {
         srand((unsigned int) getCurrentSysTimeMS());
         int sanityCheck = 0; // prevents looping forever in case no valid moves
         dirChoice = rand() % 4;
@@ -442,32 +444,28 @@ static void parseGETRequest(char *request) {
         val = getValue("b1_q");
         if (strcmp(val, "ready") != 0) {
             strcpy(badGuys[0].dirQueue, val);
-            badGuys[0].velX = 0;
-            badGuys[0].velY = 0;
+            selectedBaddie = 0;
         }
     }
     if (badGuys[1].dirQueue[0] == '\0' && !badGuys[1].ready) {
         val = getValue("b2_q");
         if (strcmp(val, "ready") != 0) {
             strcpy(badGuys[1].dirQueue, val);
-            badGuys[1].velX = 0;
-            badGuys[1].velY = 0;
+            selectedBaddie = 1;
         }
     }
     if (badGuys[2].dirQueue[0] == '\0' && !badGuys[2].ready) {
         val = getValue("b3_q");
         if (strcmp(val, "ready") != 0) {
             strcpy(badGuys[2].dirQueue, val);
-            badGuys[2].velX = 0;
-            badGuys[2].velY = 0;
+            selectedBaddie = 2;
         }
     }
     if (badGuys[3].dirQueue[0] == '\0' && !badGuys[3].ready) {
         val = getValue("b4_q");
         if (strcmp(val, "ready") != 0) {
             strcpy(badGuys[3].dirQueue, val);
-            badGuys[3].velX = 0;
-            badGuys[3].velY = 0;
+            selectedBaddie = 3;
         }
     }
 }
