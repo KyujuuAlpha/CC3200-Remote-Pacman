@@ -65,3 +65,5 @@ desktop.ini
 .ccsproject
 .cproject
 .project
+
+common.h
