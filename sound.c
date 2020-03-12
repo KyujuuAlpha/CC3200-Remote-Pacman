@@ -24,10 +24,19 @@
 #include "gpio.h"
 
 static bool freqFlag = false, isGenerating = false;
+static char *empty = "";
 char *song = "";
 
 void playSound(char *newSong) {
     song = newSong;
+}
+
+void stopSound(void) {
+    song = empty;
+}
+
+int isSoundPlaying(void) {
+    return song[0] == '\0';
 }
 
 void generateFrequency(unsigned long frequency) {

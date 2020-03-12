@@ -16,6 +16,8 @@
 #define ZERO_CHAR '0'
 
 void playSound(char *newSong);
+void stopSound(void);
+int isSoundPlaying(void);
 void generateFrequency(unsigned long frequency);
 void stopFrequencyGenerator(void);
 
