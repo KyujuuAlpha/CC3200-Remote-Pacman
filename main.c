@@ -620,6 +620,7 @@ static void mainGameLogic(void) {
         pac.score++;
         pellet_counter--;
         if (pellet_counter == 0) {
+            tickTimer = 0;
             state = GOVER_STATE;
         }
         drawScore();
