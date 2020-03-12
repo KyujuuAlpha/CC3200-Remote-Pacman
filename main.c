@@ -400,10 +400,8 @@ static int adjustVel(int vel, const int *velFactor) {
 }
 
 static void parseGETRequest(char *request) {
-    printf(request);
     parseJSON(request);
     //printf("%s %s\n", getValue("bad_ctrl"), getValue("bad_dir"));
-    getValue("");
 }
 
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel

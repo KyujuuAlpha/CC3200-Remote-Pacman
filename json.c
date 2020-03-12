@@ -26,7 +26,7 @@ void parseJSON(char *json) {
     char i, *j;
     j = json;
     currIndex = 0;
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < MAX_VAL; i++) {
         reportedVals[i] = (JsonVar) { .name = "", .value = "" };
     }
     while (*j != '\0') {
@@ -46,7 +46,7 @@ void parseJSON(char *json) {
                     reportMode = true;
                 } else {
                     if (reportMode) {
-                        if (currIndex != MAX_VAL) {
+                        if (currIndex < MAX_VAL) {
                             if (colonMode) {
                                 strcpy(reportedVals[currIndex++].value, str);
                                 colonMode = false;
@@ -62,6 +62,7 @@ void parseJSON(char *json) {
         } else if (*j == '{') {
             colonMode = false;
         } else if (*j == '}') {
+            colonMode = false;
             if (reportMode) {
                 return;
             }
@@ -72,8 +73,10 @@ void parseJSON(char *json) {
 
 char* getValue(char *name) {
     int i;
-    for (i = 0; i < 10; i++) {
-        printf("%s: %s\n", reportedVals[i].name, reportedVals[i].value);
+    for (i = 0; i < currIndex; i++) {
+        if(strcmp(reportedVals[i].name, name) == 0) {
+            return reportedVals[i].value;
+        }
     }
     return NULL;
 }
