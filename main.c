@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 // Driverlib includes
 #include "hw_types.h"
@@ -68,7 +69,8 @@ struct Baddie {
     int y;
     int color;
     char dir;
-    char prevDir;
+    char* dirQueue;
+    bool validMoves[4]; // U D L R
 };
 // static function prototypes
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
@@ -85,6 +87,10 @@ static void mainGameLogic(void);
 static void gameOverLogic(void);
 static void startScreenLogic(void);
 static void gameLoop(void);
+int dirCharToInt(char dir);
+char dirIntToChar(int dir);
+char decideDir(struct Baddie *bad);
+static void determineValidMoves(struct Baddie *bad);
 
 // main function definition
 void main() {
@@ -292,7 +298,8 @@ static void startScreenLogic(void) {
                 if (initBaddie >= 4) continue;
                 badGuys[initBaddie].y = j*4;
                 badGuys[initBaddie].x = i*4;
-                badGuys[initBaddie].dir = 'L';
+                determineValidMoves(&badGuys[initBaddie]);
+                badGuys[initBaddie].dir = decideDir(&badGuys[initBaddie]);
                 initBaddie++;
             }
         }
@@ -309,8 +316,7 @@ static bool yCollision(int x, int y, int yVel) {
     const int blockSize = WIDTH / MAP_SIZE;
     int blockX, blockY;
     blockX = (x + 2) / blockSize;
-    if (yVel < 0)
-    {
+    if (yVel < 0) {
         blockY = (y + yVel) / blockSize;
     } else {
         blockY = (y + yVel + PAC_SIZE - 1) / blockSize;
@@ -323,8 +329,7 @@ static bool xCollision(int x, int y, int xVel) {
     const int blockSize = WIDTH / MAP_SIZE;
     int blockX, blockY;
     blockY = (y+2) / blockSize;
-    if (xVel < 0)
-    {
+    if (xVel < 0) {
         blockX = (x + xVel) / blockSize;
     } else {
         blockX = (x + xVel + PAC_SIZE - 1) / blockSize;
@@ -336,29 +341,44 @@ bool enemyHit(struct Pac* pac, struct Baddie* bad) {
     return ((int)pac->x/4 == (int)bad->x/4 && (int)pac->y/4 == (int)bad->y/4);
 }
 
+char decideDir(struct Baddie *bad) {
+    srand((unsigned int)getCurrentSysTimeMS());
+    int sanityCheck = 0; // prevents looping forever in case no valid moves
+    char dirChoice = rand() % 4;
+    while (!bad->validMoves[dirChoice] && sanityCheck < 4) {
+        dirChoice++;
+        sanityCheck++;
+        if (dirChoice == 4) dirChoice = 0;
+    }
+    return dirChoice;
+}
+
 static void updateBaddieLoc(struct Baddie* bad) {
     int velX = 0;
     int velY = 0;
     switch (bad->dir) {
-    case 'U':
+    case 0: // U
         velY = -1;
         break;
-    case 'D':
-        velY = 1;
-        break;
-    case 'L':
+    case 1: // L
         velX = -1;
         break;
-    case 'R':
+    case 2: // R
         velX = 1;
         break;
+    case 3: // D
+        velY = 1;
+        break;
     }
-    if(!yCollision(bad->x, bad->y, velY)) {
+    if(velY != 0 && !yCollision(bad->x, bad->y, velY)) {
         bad->y += velY;
+        bad->x = ((bad->x + 2) / 4) * 4;
     }
-    if(!xCollision(bad->x, bad->y, velX)) {
+    if(velX != 0 && !xCollision(bad->x, bad->y, velX)) {
         bad->x += velX;
+        bad->y = ((bad->y + 2) / 4) * 4;
     }
+    determineValidMoves(bad);
 }
 
 // function that updates the Pac's location accordingly and keeps it within bounds
@@ -482,8 +502,44 @@ static void mainGameLogic(void) {
         if (badGuys[bad].x == -1) {
             continue;
         }
+        int badGridX = badGuys[bad].x/4;
+        int badGridY = badGuys[bad].y/4;
         fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, 0x0000);
+        if (map[badGridY][badGridX] == POINT) {
+            int k =  blockSize / 2;
+            fillRect(badGridX * blockSize + blockSize / 2 - k / 2, badGridY * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+        }
+        if (map[badGridY-1][badGridX] == POINT) {
+            int k =  blockSize / 2;
+            fillRect(badGridX * blockSize + blockSize / 2 - k / 2, (badGridY-1) * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+        }
+        if (map[badGridY+1][badGridX] == POINT) {
+            int k =  blockSize / 2;
+            fillRect(badGridX * blockSize + blockSize / 2 - k / 2, (badGridY+1) * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+        }
+        if (map[badGridY][badGridX-1] == POINT) {
+            int k =  blockSize / 2;
+            fillRect((badGridX-1) * blockSize + blockSize / 2 - k / 2, badGridY * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+        }
+        if (map[badGridY][badGridX+1] == POINT) {
+            int k =  blockSize / 2;
+            fillRect((badGridX+1) * blockSize + blockSize / 2 - k / 2, badGridY * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
+        }
+        bool prevValid[4] = {
+                              badGuys[bad].validMoves[0],
+                              badGuys[bad].validMoves[1],
+                              badGuys[bad].validMoves[2],
+                              badGuys[bad].validMoves[3]
+                            };
         updateBaddieLoc(&badGuys[bad]);
+        int boolIndex = 0;
+        // Determines if the valid moves has changed, if so, determine new move
+        for(boolIndex = 0; boolIndex < 4; boolIndex++) {
+            if (prevValid[boolIndex] != badGuys[bad].validMoves[boolIndex]) {
+                badGuys[bad].dir = decideDir(&badGuys[bad]);
+                break;
+            }
+        }
         fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, badGuys[bad].color);
         if(enemyHit(&pac, &badGuys[bad])) {
             tickTimer = 0;
@@ -517,4 +573,16 @@ static void gameOverLogic(void) {
     } else {
         tickTimer++;
     }
+}
+
+
+static void determineValidMoves(struct Baddie* bad) {
+    // U
+    bad->validMoves[0] = !yCollision(bad->x, bad->y, -1);
+    // L
+    bad->validMoves[1] = !xCollision(bad->x, bad->y, -1);
+    // R
+    bad->validMoves[2] = !xCollision(bad->x, bad->y, 1);
+    // D
+    bad->validMoves[3] = !yCollision(bad->x, bad->y, 1);
 }
