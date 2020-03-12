@@ -339,7 +339,6 @@ void decideVelocities(struct Baddie *bad) {
             }
             if (bad->dirQueue[0] == '\0') {
                 bad->ready = true;
-                return;
             }
         } while (!bad->validMoves[dirChoice]);
     } else if(bad->id != selectedBaddie) {
