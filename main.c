@@ -421,28 +421,28 @@ static void parseGETRequest(char *request) {
     parseJSON(request);
     //printf("%s %s\n", getValue("bad_ctrl"), getValue("bad_dir"));
     char *val;
-    if (bad[0].dirQueue[0] == '\0' && !bad[0].ready) {
+    if (badGuys[0].dirQueue[0] == '\0' && !badGuys[0].ready) {
         val = getValue("b1_q");
         if (strcmp(val, "ready") != 0) {
-            strcpy(bad[0], val);
+            strcpy(badGuys[0], val);
         }
     }
-    if (bad[1].dirQueue[0] == '\0' && !bad[1].ready) {
+    if (badGuys[1].dirQueue[0] == '\0' && !badGuys[1].ready) {
         val = getValue("b2_q");
         if (strcmp(val, "ready") != 0) {
-            strcpy(bad[1], val);
+            strcpy(badGuys[1], val);
         }
     }
-    if (bad[2].dirQueue[0] == '\0' && !bad[2].ready) {
+    if (badGuys[2].dirQueue[0] == '\0' && !badGuys[2].ready) {
         val = getValue("b3_q");
         if (strcmp(val, "ready") != 0) {
-            strcpy(bad[2], val);
+            strcpy(badGuys[2], val);
         }
     }
-    if (bad[3].dirQueue[0] == '\0' && !bad[3].ready) {
+    if (badGuys[3].dirQueue[0] == '\0' && !badGuys[3].ready) {
         val = getValue("b4_q");
         if (strcmp(val, "ready") != 0) {
-            strcpy(bad[3], val);
+            strcpy(badGuys[3], val);
         }
     }
 }
