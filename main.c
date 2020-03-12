@@ -70,7 +70,6 @@ struct Baddie {
     int velX;
     int velY;
     int color;
-    char dir;
     char* dirQueue;
     bool ready;
     bool validMoves[4]; // U D L R
@@ -82,16 +81,14 @@ static long dropFrame(long frameCount);
 static char *integerToString(int i);
 static char *coordsToString(int i, int j);
 static unsigned long getCurrentSysTimeMS(void);
+void decideVelocities(struct Baddie *bad);
+static void determineValidMoves(struct Baddie *bad);
 static void BoardInit(void);
 
 static void mainGameLogic(void);
 static void gameOverLogic(void);
 static void startScreenLogic(void);
 static void gameLoop(void);
-int dirCharToInt(char dir);
-char dirIntToChar(int dir);
-char decideDir(struct Baddie *bad);
-static void determineValidMoves(struct Baddie *bad);
 
 // main function definition
 void main() {
@@ -239,10 +236,10 @@ const int blockSize = WIDTH / MAP_SIZE;
 
 static struct Pac pac; // structure that keeps track of the pac's loc
 static struct Baddie badGuys[4] = {
-                             { -1, -1, 0, 0, BAD_1_COLOR, 0, "", false },
-                             { -1, -1, 0, 0, BAD_2_COLOR, 0, "", false },
-                             { -1, -1, 0, 0, BAD_3_COLOR, 0, "", false },
-                             { -1, -1, 0, 0, BAD_4_COLOR, 0, "", false }
+                             { -1, -1, 0, 0, BAD_1_COLOR, "", false },
+                             { -1, -1, 0, 0, BAD_2_COLOR, "", false },
+                             { -1, -1, 0, 0, BAD_3_COLOR, "", false },
+                             { -1, -1, 0, 0, BAD_4_COLOR, "", false }
                             };
 static int xVel = 0, yVel = 0; // velocities of the pac
 static int tickTimer = 0, tickCounter = 0;
@@ -279,7 +276,7 @@ static void startScreenLogic(void) {
                 badGuys[initBaddie].y = j*4;
                 badGuys[initBaddie].x = i*4;
                 determineValidMoves(&badGuys[initBaddie]);
-                badGuys[initBaddie].dir = decideDir(&badGuys[initBaddie]);
+                decideVelocities(&badGuys[initBaddie]);
                 initBaddie++;
             }
         }
@@ -321,7 +318,7 @@ bool enemyHit(struct Pac* pac, struct Baddie* bad) {
     return ((int)pac->x/4 == (int)bad->x/4 && (int)pac->y/4 == (int)bad->y/4);
 }
 
-char decideDir(struct Baddie *bad) {
+void decideVelocities(struct Baddie *bad) {
     char dirChoice = 4;
     if (bad->dirQueue[0] != '\0') {
         do {
@@ -357,7 +354,6 @@ char decideDir(struct Baddie *bad) {
 //        sanityCheck++;
 //        if (dirChoice == 4) dirChoice = 0;
 //    }
-    return dirChoice;
 }
 
 static void updateBaddieLoc(struct Baddie* bad) {
@@ -558,7 +554,7 @@ static void mainGameLogic(void) {
         updateBaddieLoc(&badGuys[bad]);
         // if velocities zero
         if (badGuys[bad].velX == 0 && badGuys[bad].velY == 0) {
-            badGuys[bad].dir = decideDir(&badGuys[bad]);
+            decideVelocities(&badGuys[bad]);
         }
         fillRect(badGuys[bad].x, badGuys[bad].y, PAC_SIZE, PAC_SIZE, badGuys[bad].color);
         if(enemyHit(&pac, &badGuys[bad])) {
