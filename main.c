@@ -74,6 +74,7 @@ static int adjustVel(int vel, const int *velFactor);
 static long dropFrame(long frameCount);
 static char *encodeCoords(int *coords, int size);
 static char *integerToString(int i);
+static int stringToInteger(char *str);
 static char *coordsToString(int i, int j);
 static unsigned long getCurrentSysTimeMS(void);
 static void BoardInit(void);
@@ -175,6 +176,12 @@ static char *integerToString(int i) {
     static char stringBufA[20] = "";
     sprintf(stringBufA, "%d", i);
     return stringBufA;
+}
+
+static int stringToInteger(char *str) {
+    static int integerBuf;
+    sscanf(str, "%d", integerBuf);
+    return integerBuf;
 }
 
 static char *coordsToString(int i, int j) {
