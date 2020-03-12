@@ -44,9 +44,10 @@
 #define PAC_SIZE         4
 #define MAX_VEL          1
 
-#define START_STATE 0
-#define GAME_STATE  1
-#define GOVER_STATE 2
+#define START_STATE  0
+#define GAME_STATE   1
+#define GOVER_STATE  2
+#define TITLE_SCREEN 3
 
 #define ENABLE_SERVER 1
 
@@ -200,7 +201,7 @@ static void gameLoop(void) {
     unsigned long prevTime = getCurrentSysTimeMS();
     long newDelay = 0;
     skipFrameDrop = false;
-    state = START_STATE; // initial state
+    state = TITLE_SCREEN; // initial state
 
     while (1) {
         if (skipFrameDrop) {
@@ -210,6 +211,8 @@ static void gameLoop(void) {
 
         do {
             switch (state) {
+                case TITLE_SCREEN:
+                    titleScreenLogic();
                 case START_STATE:
                     startScreenLogic(); // updates state to game_state
                     break;
@@ -630,12 +633,24 @@ static void gameOverLogic(void) {
     if (tickTimer > 30 * 5) { // wait five seconds (30 frames * 5)
         pollReceiveMode = false;
         requestFlag = false;
-        state = START_STATE;
+        state = TITLE_SCREEN;
     } else {
         tickTimer++;
     }
 }
 
+static void titleScreenLogic() {
+    if (tickTimer == 0) {
+        fillRect(0, 0, WIDTH, HEIGHT, 0x0000);
+        setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 16);
+        Outstr("PAC MAN");
+    }
+    if (tickTimer > 30 * 5) {
+        state = START_STATE;
+    } else {
+        tickTimer++;
+    }
+}
 
 static void determineValidMoves(struct Baddie* bad) {
     // U
