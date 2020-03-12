@@ -70,15 +70,14 @@ struct Baddie {
     int color;
     char dir;
     char* dirQueue;
+    bool ready;
     bool validMoves[4]; // U D L R
 };
 // static function prototypes
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
 static int adjustVel(int vel, const int *velFactor);
 static long dropFrame(long frameCount);
-static char *encodeCoords(int *coords, int size);
 static char *integerToString(int i);
-static int stringToInteger(char *str);
 static char *coordsToString(int i, int j);
 static unsigned long getCurrentSysTimeMS(void);
 static void BoardInit(void);
@@ -167,31 +166,10 @@ int abs(int val) {
     return val;
 }
 
-static char translation[32] = {'0', '1', '2', '3', '4', '5', '6',
-                               '7', '8', '9', 'a', 'b', 'c', 'd',
-                               'e', 'f', 'g', 'h', 'i', 'j', 'k',
-                               'l', 'm', 'n', 'o', 'p', 'q', 'r',
-                               's', 't', 'u', 'v'};
-
-static char *encodeCoords(int *coords, int size) {
-    static char encode[20] = "";
-    int i;
-    for (i = 0; i < size; i++) {
-        sprintf(encode, "%s%c", encode, translation[coords[i]]);
-    }
-    return encode;
-}
-
 static char *integerToString(int i) {
     static char stringBufA[20] = "";
     sprintf(stringBufA, "%d", i);
     return stringBufA;
-}
-
-static int stringToInteger(char *str) {
-    static int integerBuf;
-    sscanf(str, "%d", &integerBuf);
-    return integerBuf;
 }
 
 static char *coordsToString(int i, int j) {
@@ -259,10 +237,10 @@ const int blockSize = WIDTH / MAP_SIZE;
 
 static struct Pac pac; // structure that keeps track of the pac's loc
 static struct Baddie badGuys[4] = {
-                             { -1, -1, BAD_1_COLOR },
-                             { -1, -1, BAD_2_COLOR },
-                             { -1, -1, BAD_3_COLOR },
-                             { -1, -1, BAD_4_COLOR }
+                             { -1, -1, BAD_1_COLOR, "", false },
+                             { -1, -1, BAD_2_COLOR, "", false },
+                             { -1, -1, BAD_3_COLOR, "", false },
+                             { -1, -1, BAD_4_COLOR, "", false }
                             };
 static int xVel = 0, yVel = 0; // velocities of the pac
 static int tickTimer = 0, tickCounter = 0;
@@ -342,9 +320,18 @@ bool enemyHit(struct Pac* pac, struct Baddie* bad) {
 }
 
 char decideDir(struct Baddie *bad) {
-    srand((unsigned int)getCurrentSysTimeMS());
+    char dirChoice = 0;
+    if (bad->dirQueue[0] != '\0') {
+        dirChoice = bad->dirQueue[0] - '0';
+        bad->dirQueue++;
+        if (bad->dirQueue[0] == '\0') {
+            bad->ready = true;
+        }
+        return dirChoice;
+    }
+    srand((unsigned int) getCurrentSysTimeMS());
     int sanityCheck = 0; // prevents looping forever in case no valid moves
-    char dirChoice = rand() % 4;
+    dirChoice = rand() % 4;
     while (!bad->validMoves[dirChoice] && sanityCheck < 4) {
         dirChoice++;
         sanityCheck++;
@@ -433,6 +420,31 @@ static int adjustVel(int vel, const int *velFactor) {
 static void parseGETRequest(char *request) {
     parseJSON(request);
     //printf("%s %s\n", getValue("bad_ctrl"), getValue("bad_dir"));
+    char *val;
+    if (bad[0].dirQueue[0] == '\0' && !bad[0].ready) {
+        val = getValue("b1_q");
+        if (strcmp(val, "ready") != 0) {
+            strcpy(bad[0], val);
+        }
+    }
+    if (bad[1].dirQueue[0] == '\0' && !bad[1].ready) {
+        val = getValue("b2_q");
+        if (strcmp(val, "ready") != 0) {
+            strcpy(bad[1], val);
+        }
+    }
+    if (bad[2].dirQueue[0] == '\0' && !bad[2].ready) {
+        val = getValue("b3_q");
+        if (strcmp(val, "ready") != 0) {
+            strcpy(bad[2], val);
+        }
+    }
+    if (bad[3].dirQueue[0] == '\0' && !bad[3].ready) {
+        val = getValue("b4_q");
+        if (strcmp(val, "ready") != 0) {
+            strcpy(bad[3], val);
+        }
+    }
 }
 
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
@@ -473,6 +485,22 @@ static void mainGameLogic(void) {
                     buildRequest("b2_loc", coordsToString(badGuys[1].x, badGuys[1].y));
                     buildRequest("b3_loc", coordsToString(badGuys[2].x, badGuys[2].y));
                     buildRequest("b4_loc", coordsToString(badGuys[3].x, badGuys[3].y));
+                    if (badGuys[0].ready) {
+                        badGuys[0].ready = false;
+                        buildRequest("b1_q", "ready");
+                    }
+                    if (badGuys[1].ready) {
+                        badGuys[1].ready = false;
+                        buildRequest("b2_q", "ready");
+                    }
+                    if (badGuys[2].ready) {
+                        badGuys[2].ready = false;
+                        buildRequest("b3_q", "ready");
+                    }
+                    if (badGuys[3].ready) {
+                        badGuys[3].ready = false;
+                        buildRequest("b4_q", "ready");
+                    }
                     receive = sendRequest();
                 } else { // if now false
                     receive = receiveString();
