@@ -269,6 +269,7 @@ static void startScreenLogic(void) {
         badGuys[i].x = -1;
         badGuys[i].y = -1;
     }
+    pellet_counter = 0;
     // initial stuff
     // iterate through map, setting info based on values in each entry
     for (i = 0; i < MAP_SIZE; i++) {
@@ -652,10 +653,12 @@ static void gameOverLogic(void) {
     if (tickTimer > 30 * 5 && pellet_counter > 0) { // wait five seconds (30 frames * 5)
         pollReceiveMode = false;
         requestFlag = false;
+        tickTimer = 0;
         state = TITLE_SCREEN;
     } else if (tickTimer > 30 * 5 && pellet_counter == 0) { // wait five seconds (30 frames * 5)
         pollReceiveMode = false;
         requestFlag = false;
+        tickTimer = 0;
         state = START_STATE;
     } else {
         tickTimer++;
