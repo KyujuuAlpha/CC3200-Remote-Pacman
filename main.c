@@ -92,6 +92,8 @@ static void gameOverLogic(void); // logic for reseting
 static void startScreenLogic(void); // logic for init
 static void gameLoop(void); // loop over logics based on state
 
+int pellet_counter = 0;
+
 // main function definition
 void main() {
 
@@ -274,13 +276,13 @@ static void startScreenLogic(void) {
             } else if (map[j][i] == POINT || map[j][i] == PLACEHOLDER) { // point pac
                 // draw point pellet, reset inactive pellets to active
                 map[j][i] = POINT;
+                pellet_count++;
                 k =  blockSize / 2; // middle of tile to draw pellet
                 fillRect(i * blockSize + blockSize / 2 - k / 2, j * blockSize + blockSize / 2 - k / 2, k, k, POINT_COLOR);
             } else if (map[j][i] == SPAWN) { // start loc player
                 // set pac location
                 pac.y = j*4;
                 pac.x = i*4;
-                pac.score = 0;
                 drawScore();
             } else if (map[j][i] == ENEMY) { // start loc baddies
                 // init next bad
@@ -612,6 +614,10 @@ static void mainGameLogic(void) {
         // update score if pac has entered a point tile
         map[pac.y/blockSize][pac.x/blockSize] = PLACEHOLDER;
         pac.score++;
+        pellet_count--;
+        if (pellet_count == 0) {
+            state = GOVER_STATE;
+        }
         drawScore();
         playSound(BEEP);
     }
@@ -619,7 +625,7 @@ static void mainGameLogic(void) {
 
 // GAME OVER STUFF
 static void gameOverLogic(void) {
-    if (tickTimer == 0) {
+    if (tickTimer == 0 && pellet_count > 0) {
         // clear screen
         fillRect(0, 0, WIDTH, HEIGHT, 0x0000);
         setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 16);
@@ -629,11 +635,25 @@ static void gameOverLogic(void) {
         // draw final score
         Outstr(integerToString(pac.score));
         playSound(DEATH);
+    } else if (tickTimer == 0 && pellet_count == 0) {
+        // clear screen
+        fillRect(0, 0, WIDTH, HEIGHT, 0x0000);
+        setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 16);
+        Outstr("SCREEN CLEARED");
+        setCursor(WIDTH / 2 - 32, HEIGHT / 2 - 8);
+        Outstr("Score: ");
+        // draw final score
+        Outstr(integerToString(pac.score));
+        playSound(DEATH);
     }
-    if (tickTimer > 30 * 5) { // wait five seconds (30 frames * 5)
+    if (tickTimer > 30 * 5 && pellet_count > 0) { // wait five seconds (30 frames * 5)
         pollReceiveMode = false;
         requestFlag = false;
         state = TITLE_SCREEN;
+    } else if (tickTimer > 30 * 5 && pellet_count == 0) { // wait five seconds (30 frames * 5)
+        pollReceiveMode = false;
+        requestFlag = false;
+        state = START_STATE;
     } else {
         tickTimer++;
     }
@@ -650,6 +670,7 @@ static void titleScreenLogic() {
     } else {
         tickTimer++;
     }
+    pac.score = 0;
 }
 
 static void determineValidMoves(struct Baddie* bad) {
