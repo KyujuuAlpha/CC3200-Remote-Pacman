@@ -73,7 +73,7 @@ struct Baddie {
     int color;
     char dirQueue[8];
     bool ready;
-    bool validMoves[4]; // U D L R
+    bool validMoves[4];
 };
 // static function prototypes
 static void updatePacLoc(struct Pac *Pac, int *xVel, int *yVel);
@@ -181,9 +181,9 @@ static char *coordsToString(int i, int j) {
 
 // MAIN GAME LOOP STUFF
 static int frameDrop = 0;
-static long dropFrame(long frameCount) {
+static long dropFrame(long delay) {
     frameDrop++;
-    return (frameCount += 888800) < 0 ? dropFrame(frameCount) : frameCount;
+    return (delay += 888800) < 0 ? dropFrame(delay) : delay;
 }
 
 static unsigned long getCurrentSysTimeMS(void) {

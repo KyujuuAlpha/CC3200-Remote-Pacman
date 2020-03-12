@@ -2,7 +2,7 @@
  * bounds2.h
  *
  *  Created on: Jan 23, 2222
- *      Author: troir
+ *      Author: Corbin
  */
 
 #ifndef MAP_H_
@@ -24,8 +24,6 @@
 #define BAD_2_COLOR 0x075A
 #define BAD_3_COLOR 0xECA0
 #define BAD_4_COLOR 0xE814
-
-
 
 unsigned char map[MAP_SIZE][MAP_SIZE] = {
 {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
