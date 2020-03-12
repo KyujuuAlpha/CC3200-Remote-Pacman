@@ -70,7 +70,7 @@ struct Baddie {
     int velX;
     int velY;
     int color;
-    char* dirQueue;
+    char dirQueue[8];
     bool ready;
     bool validMoves[4]; // U D L R
 };
@@ -319,14 +319,17 @@ bool enemyHit(struct Pac* pac, struct Baddie* bad) {
 }
 
 void decideVelocities(struct Baddie *bad) {
-    char dirChoice = 4;
+    char dirChoice = 4, i = 1;
     if (bad->dirQueue[0] != '\0') {
         do {
             if (bad->dirQueue[0] == '\0') {
                 break;
             }
             dirChoice = bad->dirQueue[0] - '0';
-            bad->dirQueue++;
+            while (bad->dirQueue[i - 1] != '\0') {
+                bad->dirQueue[i - 1] = bad->dirQueue[i];
+                i++;
+            }
             if (bad->dirQueue[0] == '\0') {
                 bad->ready = true;
             }
