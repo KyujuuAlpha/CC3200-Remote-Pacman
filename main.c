@@ -218,6 +218,7 @@ static void gameLoop(void) {
             switch (state) {
                 case TITLE_SCREEN:
                     titleScreenLogic();
+                    break;
                 case START_STATE:
                     startScreenLogic(); // updates state to game_state
                     break;
