@@ -35,6 +35,7 @@
 #include "map.h"
 #include "sound.h"
 #include "aws_if.h"
+#include "json.h"
 
 // macros for some constants
 #define SPI_IF_BIT_RATE  800000
@@ -399,9 +400,10 @@ static int adjustVel(int vel, const int *velFactor) {
 }
 
 static void parseGETRequest(char *request) {
-    /* TODO
-     * Get Request Logic
-     */
+    printf(request);
+    parseJSON(request);
+    //printf("%s %s\n", getValue("bad_ctrl"), getValue("bad_dir"));
+    getValue("");
 }
 
 static unsigned char ACCDEV = 0x18, xREG = 0x3, yREG = 0x5; // device and registers for accel
